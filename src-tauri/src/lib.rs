@@ -33,11 +33,12 @@ pub fn run() {
                     .accelerator("CmdOrCtrl+,")
                     .build(&handle)?;
 
-                // Reuse the bundled app icon (the mallow logo) in the About dialog.
+                // Show a high-resolution mallow logo in the About dialog.
+                let about_icon = tauri::image::Image::from_bytes(include_bytes!("../icons/128x128@2x.png")).ok();
                 let about_metadata = AboutMetadataBuilder::new()
                     .name(Some("mallow"))
                     .version(Some(env!("CARGO_PKG_VERSION")))
-                    .icon(app.default_window_icon().cloned())
+                    .icon(about_icon)
                     .build();
 
                 let app_menu = SubmenuBuilder::new(&handle, "mallow")

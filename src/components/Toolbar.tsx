@@ -1,4 +1,3 @@
-import logoUrl from '../assets/logo.png';
 import { useT } from '../lib/i18n';
 import type { FileEntry } from '../lib/types';
 import { FolderOpenIcon } from './icons';
@@ -14,7 +13,6 @@ export function Toolbar({ selected, onOpenFolder }: ToolbarProps) {
   const t = useT();
   return (
     <header className="toolbar">
-      <img className="toolbar__brand" src={logoUrl} alt="mallow" width={22} height={22} />
       <button type="button" className="icon-btn" title={t('openFolder')} aria-label={t('openFolder')} onClick={onOpenFolder}>
         <FolderOpenIcon />
       </button>
