@@ -2,6 +2,15 @@
   "name": "mallow",
   "private": true,
   "version": "0.1.0",
+  "description": "A lightweight desktop Markdown / config-file viewer (Tauri v2).",
+  "license": "MIT",
+  "author": "Takuya Otani <takuya.otani@serenebach.net>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/takkyun/mallow.git"
+  },
+  "homepage": "https://github.com/takkyun/mallow#readme",
+  "bugs": "https://github.com/takkyun/mallow/issues",
   "type": "module",
   "scripts": {
     "dev": "vite",

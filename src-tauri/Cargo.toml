@@ -1,8 +1,11 @@
 [package]
 name = "mallow"
 version = "0.1.0"
-description = "A Tauri App"
-authors = ["you"]
+description = "A lightweight desktop Markdown / config-file viewer (Tauri v2)."
+authors = ["Takuya Otani <takuya.otani@serenebach.net>"]
+license = "MIT"
+repository = "https://github.com/takkyun/mallow"
+homepage = "https://github.com/takkyun/mallow"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
