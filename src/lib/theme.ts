@@ -8,20 +8,9 @@
 export type ThemeId = 'light' | 'dark' | 'auto' | 'solarized-light' | 'solarized-dark' | 'dracula' | 'nord';
 export type Resolved = 'light' | 'dark';
 
-export interface ThemeOption {
-  id: ThemeId;
-  label: string;
-}
-
-export const THEMES: ThemeOption[] = [
-  { id: 'light', label: 'ライト' },
-  { id: 'dark', label: 'ダーク' },
-  { id: 'auto', label: '自動 (OS)' },
-  { id: 'solarized-light', label: 'Solarized Light' },
-  { id: 'solarized-dark', label: 'Solarized Dark' },
-  { id: 'dracula', label: 'Dracula' },
-  { id: 'nord', label: 'Nord' },
-];
+/** Theme ids in menu order. Labels are resolved at render time: light/dark/auto
+ *  are translated, the named palettes use their proper-noun label. */
+export const THEMES: ThemeId[] = ['light', 'dark', 'auto', 'solarized-light', 'solarized-dark', 'dracula', 'nord'];
 
 const STORAGE_KEY = 'theme';
 
@@ -40,7 +29,7 @@ const listeners = new Set<(theme: Resolved) => void>();
 
 export function getTheme(): ThemeId {
   const value = document.documentElement.dataset.theme;
-  return THEMES.some((t) => t.id === value) ? (value as ThemeId) : 'auto';
+  return THEMES.some((id) => id === value) ? (value as ThemeId) : 'auto';
 }
 
 /** The effective light/dark mode once "auto" is resolved against the OS. */

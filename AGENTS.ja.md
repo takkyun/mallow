@@ -25,16 +25,19 @@ Tauri v2 (Rust) + Vite + React + TypeScript + SCSS。**Tailwind は不使用。*
 
 **フロントエンド (`src/`)**
 - `App.tsx` — 最上位の状態: フォルダを開く、選択、ファイル監視の配線、エクスプローラの
-  幅/左右、セッション復元。
+  幅/左右、セッション復元、設定モーダルの開閉（フッターのボタン・`menu:settings`
+  イベント・`Cmd/Ctrl+,` ショートカットのいずれからも開く）。
 - `hooks/useFileTree.ts` — ファイルツリーの集中管理（展開集合・子マップ・`refresh`・
   `expandPaths`）。ツリーコンポーネントはこれに制御される。
 - `components/` — Explorer/FileTree、Viewer（種別でルーティング）、MarkdownView、
   ConfigView/ConfigTree、SourceView（共通・行番号付き）、MermaidView、Outline、
-  Toolbar、OpenWith、ThemePicker、SettingsMenu、icons。
+  Toolbar、OpenWith、ThemePicker、SettingsModal、icons（Lucide の SVG をインライン化・
+  ランタイム依存なし）。
 - `lib/` — `markdown`（markdown-it パイプライン）、`shiki`（ハイライタ singleton +
   `stripPreBackground`）、`mermaid` + `mermaid-copy` + `codeblock`（命令的 DOM 強化）、
   `frontmatter`、`config-parse`、`scroll`（スクロール位置保持）、`watch`、
-  `settings`（plugin-store）、`theme`、`file`、`tauri`（invoke ラッパ）、`types`。
+  `settings`（plugin-store）、`theme`、`i18n`（ja/en 辞書 + provider/hooks。言語は
+  localStorage に永続化）、`file`、`tauri`（invoke ラッパ）、`types`。
 - `styles/` — SCSS: `_vars`（パレット + `on-dark` mixin）、`global`、`app`、
   `markdown`、`config`、`source`。
 
@@ -45,7 +48,9 @@ Tauri v2 (Rust) + Vite + React + TypeScript + SCSS。**Tailwind は不使用。*
   ウォッチャは `WatcherState` が保持。
 - `editors.rs` — `detect_editors` / `open_in_editor` / `reveal_in_os` を `std::process`
   で実装（OS ごとに `cfg` で分岐）。
-- `lib.rs` — プラグイン登録（opener, dialog, store, window-state）と `invoke_handler`。
+- `lib.rs` — プラグイン登録（opener, dialog, store, window-state）、`invoke_handler`、
+  および（macOS のみ）ネイティブアプリメニュー。Settings… 項目（⌘,）が
+  `menu:settings` イベントを emit し、フロントがそれを購読する。
 
 ## 規約
 
@@ -68,6 +73,12 @@ Tauri v2 (Rust) + Vite + React + TypeScript + SCSS。**Tailwind は不使用。*
 - テーマ = `data-theme` 属性 + CSS 変数パレット（瞬時切替・非 React の描画 HTML にも適用）。
   7 種類。ダークパレットを追加する際は `_vars.scss` の `on-dark` mixin と `global.scss`
   の適用にも追加すること。
+- i18n は `lib/i18n.tsx` の自作辞書（ライブラリ不使用）。UI 文言は `useT()` /
+  `t(key, params)` 経由にし、キーは `ja` と `en` の**両方**の辞書に追加する。言語は
+  localStorage → OS ロケール → 日本語 の順で決定。
+- アイコンは Lucide (https://lucide.dev) の SVG を `components/icons.tsx` に
+  インライン化（24×24・`stroke="currentColor"`）。追加時は `lucide-react` を入れず
+  パスデータをそのままコピーする。
 - Shiki のデュアルテーマ: light はインライン、dark は `--shiki-dark` として出力し
   `on-dark` で差し替え。コードのトークン色はパレットに関わらず github-light/dark のまま。
 - `SourceView` の行番号: Shiki は `<span class="line">` を出力するので、CSS は

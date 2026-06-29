@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type RefObject } from 'react';
+import { useT } from '../lib/i18n';
 import type { Heading } from '../lib/markdown';
 
 interface OutlineProps {
@@ -10,6 +11,7 @@ interface OutlineProps {
 const SPY_OFFSET_REM = 1.5;
 
 export function Outline({ headings, scrollRef }: OutlineProps) {
+  const t = useT();
   const [activeSlug, setActiveSlug] = useState<string | null>(headings[0]?.slug ?? null);
   const ticking = useRef(false);
   const minDepth = headings.length ? Math.min(...headings.map((h) => h.depth)) : 0;
@@ -61,8 +63,8 @@ export function Outline({ headings, scrollRef }: OutlineProps) {
   }
 
   return (
-    <nav className="doc-outline" aria-label="アウトライン">
-      <p className="doc-outline__title">目次</p>
+    <nav className="doc-outline" aria-label={t('outline')}>
+      <p className="doc-outline__title">{t('contents')}</p>
       <ul className="doc-outline__list">
         {headings.map((h) => (
           <li key={h.slug} className="doc-outline__item" data-depth={Math.min(h.depth - minDepth, 3)}>

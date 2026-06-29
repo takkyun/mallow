@@ -1,67 +1,246 @@
-/** Small inline SVG icons (use currentColor so CSS controls the color). */
+/** Inline Lucide icons (https://lucide.dev). Stroke icons that follow
+ *  `currentColor`, so CSS controls color. Path data is copied verbatim from the
+ *  Lucide source (ISC-licensed) to avoid a runtime dependency. */
+import type { ReactNode } from 'react';
 
-export function ChevronRight() {
+interface IconProps {
+  /** Pixel size of the (square) icon. */
+  size?: number;
+}
+
+function Icon({ size = 16, children }: IconProps & { children: ReactNode }) {
   return (
-    <svg width="10" height="10" viewBox="0 0 16 16" aria-hidden="true">
-      <path fill="currentColor" d="M6 4l4 4-4 4V4z" />
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      {children}
     </svg>
   );
 }
 
-export function FolderIcon() {
+// ---- Tree / file kinds ------------------------------------------------------
+
+/** lucide: chevron-right */
+export function ChevronRight({ size = 14 }: IconProps) {
   return (
-    <svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true">
-      <path
-        fill="currentColor"
-        d="M1.5 3.5A1.5 1.5 0 0 1 3 2h2.6a1 1 0 0 1 .7.3L7.5 3.5H13A1.5 1.5 0 0 1 14.5 5v6A1.5 1.5 0 0 1 13 12.5H3A1.5 1.5 0 0 1 1.5 11V3.5z"
-      />
-    </svg>
+    <Icon size={size}>
+      <path d="m9 18 6-6-6-6" />
+    </Icon>
   );
 }
 
-export function FileIcon() {
+/** lucide: folder */
+export function FolderIcon({ size = 16 }: IconProps) {
   return (
-    <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true">
-      <path fill="currentColor" d="M3.5 1.5h5L13 6v8a.5.5 0 0 1-.5.5h-9A.5.5 0 0 1 3 14V2a.5.5 0 0 1 .5-.5zM8.5 2.2V6H12.3L8.5 2.2z" />
-    </svg>
+    <Icon size={size}>
+      <path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z" />
+    </Icon>
   );
 }
 
-export function SunIcon() {
+/** lucide: file-text (markdown) */
+export function FileTextIcon({ size = 16 }: IconProps) {
   return (
-    <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
-      <circle cx="8" cy="8" r="3.1" fill="currentColor" />
-      <g stroke="currentColor" strokeWidth="1.3" strokeLinecap="round">
-        <path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.2 3.2l1.4 1.4M11.4 11.4l1.4 1.4M12.8 3.2l-1.4 1.4M4.6 11.4l-1.4 1.4" />
-      </g>
-    </svg>
+    <Icon size={size}>
+      <path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z" />
+      <path d="M14 2v5a1 1 0 0 0 1 1h5" />
+      <path d="M10 9H8" />
+      <path d="M16 13H8" />
+      <path d="M16 17H8" />
+    </Icon>
   );
 }
 
-export function MoonIcon() {
+/** lucide: file-braces-corner (json / yaml / toml config) */
+export function FileConfigIcon({ size = 16 }: IconProps) {
   return (
-    <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
-      <path fill="currentColor" d="M6.2 1.6a6.4 6.4 0 1 0 8.2 8.2A5.6 5.6 0 0 1 6.2 1.6z" />
-    </svg>
+    <Icon size={size}>
+      <path d="M14 22h4a2 2 0 0 0 2-2V8a2.4 2.4 0 0 0-.706-1.706l-3.588-3.588A2.4 2.4 0 0 0 14 2H6a2 2 0 0 0-2 2v6" />
+      <path d="M14 2v5a1 1 0 0 0 1 1h5" />
+      <path d="M5 14a1 1 0 0 0-1 1v2a1 1 0 0 1-1 1 1 1 0 0 1 1 1v2a1 1 0 0 0 1 1" />
+      <path d="M9 22a1 1 0 0 0 1-1v-2a1 1 0 0 1 1-1 1 1 0 0 1-1-1v-2a1 1 0 0 0-1-1" />
+    </Icon>
   );
 }
 
-export function GearIcon() {
+/** lucide: file-chart-line (mermaid) */
+export function FileChartIcon({ size = 16 }: IconProps) {
   return (
-    <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
-      <path
-        fill="currentColor"
-        d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zm6.4 2.5a6.5 6.5 0 0 0-.07-.86l1.3-1-1.4-2.42-1.55.5a5.6 5.6 0 0 0-1.48-.86L10.9.5h-2.8l-.3 1.86a5.6 5.6 0 0 0-1.48.86l-1.55-.5L3.37 5.14l1.3 1a5.7 5.7 0 0 0 0 1.72l-1.3 1 1.4 2.42 1.55-.5c.45.35.95.64 1.48.86l.3 1.86h2.8l.3-1.86c.53-.22 1.03-.51 1.48-.86l1.55.5 1.4-2.42-1.3-1c.05-.28.07-.57.07-.86z"
-      />
-    </svg>
+    <Icon size={size}>
+      <path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z" />
+      <path d="M14 2v5a1 1 0 0 0 1 1h5" />
+      <path d="m16 13-3.5 3.5-2-2L8 17" />
+    </Icon>
   );
 }
 
-export function AutoIcon() {
+// ---- Toolbar ----------------------------------------------------------------
+
+/** lucide: folder-open */
+export function FolderOpenIcon({ size = 16 }: IconProps) {
   return (
-    <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
-      <circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" strokeWidth="1.3" />
-      <path fill="currentColor" d="M8 2a6 6 0 0 1 0 12V2z" />
-    </svg>
+    <Icon size={size}>
+      <path d="m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2" />
+    </Icon>
+  );
+}
+
+/** lucide: share */
+export function ShareIcon({ size = 16 }: IconProps) {
+  return (
+    <Icon size={size}>
+      <path d="M12 2v13" />
+      <path d="m16 6-4-4-4 4" />
+      <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
+    </Icon>
+  );
+}
+
+// ---- Theme ------------------------------------------------------------------
+
+/** lucide: sun-moon (theme switcher / auto) */
+export function SunMoonIcon({ size = 16 }: IconProps) {
+  return (
+    <Icon size={size}>
+      <path d="M12 2v2" />
+      <path d="M14.837 16.385a6 6 0 1 1-7.223-7.222c.624-.147.97.66.715 1.248a4 4 0 0 0 5.26 5.259c.589-.255 1.396.09 1.248.715" />
+      <path d="M16 12a4 4 0 0 0-4-4" />
+      <path d="m19 5-1.256 1.256" />
+      <path d="M20 12h2" />
+    </Icon>
+  );
+}
+
+/** lucide: sun (light themes) */
+export function SunIcon({ size = 16 }: IconProps) {
+  return (
+    <Icon size={size}>
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 2v2" />
+      <path d="M12 20v2" />
+      <path d="m4.93 4.93 1.41 1.41" />
+      <path d="m17.66 17.66 1.41 1.41" />
+      <path d="M2 12h2" />
+      <path d="M20 12h2" />
+      <path d="m6.34 17.66-1.41 1.41" />
+      <path d="m19.07 4.93-1.41 1.41" />
+    </Icon>
+  );
+}
+
+/** lucide: moon (dark themes) */
+export function MoonIcon({ size = 16 }: IconProps) {
+  return (
+    <Icon size={size}>
+      <path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401" />
+    </Icon>
+  );
+}
+
+// ---- Viewer controls --------------------------------------------------------
+
+/** lucide: table-of-contents (outline toggle) */
+export function TableOfContentsIcon({ size = 16 }: IconProps) {
+  return (
+    <Icon size={size}>
+      <path d="M16 5H3" />
+      <path d="M16 12H3" />
+      <path d="M16 19H3" />
+      <path d="M21 5h.01" />
+      <path d="M21 12h.01" />
+      <path d="M21 19h.01" />
+    </Icon>
+  );
+}
+
+/** lucide: code (source view) */
+export function CodeIcon({ size = 16 }: IconProps) {
+  return (
+    <Icon size={size}>
+      <path d="m16 18 6-6-6-6" />
+      <path d="m8 6-6 6 6 6" />
+    </Icon>
+  );
+}
+
+/** lucide: scan-search (preview view) */
+export function ScanSearchIcon({ size = 16 }: IconProps) {
+  return (
+    <Icon size={size}>
+      <path d="M3 7V5a2 2 0 0 1 2-2h2" />
+      <path d="M17 3h2a2 2 0 0 1 2 2v2" />
+      <path d="M21 17v2a2 2 0 0 1-2 2h-2" />
+      <path d="M7 21H5a2 2 0 0 1-2-2v-2" />
+      <circle cx="12" cy="12" r="3" />
+      <path d="m16 16-1.9-1.9" />
+    </Icon>
+  );
+}
+
+/** lucide: list-tree (tree view) */
+export function ListTreeIcon({ size = 16 }: IconProps) {
+  return (
+    <Icon size={size}>
+      <path d="M8 5h13" />
+      <path d="M13 12h8" />
+      <path d="M13 19h8" />
+      <path d="M3 10a2 2 0 0 0 2 2h3" />
+      <path d="M3 5v12a2 2 0 0 0 2 2h3" />
+    </Icon>
+  );
+}
+
+/** lucide: maximize-2 (expand all) */
+export function Maximize2Icon({ size = 16 }: IconProps) {
+  return (
+    <Icon size={size}>
+      <path d="M15 3h6v6" />
+      <path d="m21 3-7 7" />
+      <path d="m3 21 7-7" />
+      <path d="M9 21H3v-6" />
+    </Icon>
+  );
+}
+
+/** lucide: minimize-2 (collapse all) */
+export function Minimize2Icon({ size = 16 }: IconProps) {
+  return (
+    <Icon size={size}>
+      <path d="m14 10 7-7" />
+      <path d="M20 10h-6V4" />
+      <path d="m3 21 7-7" />
+      <path d="M4 14h6v6" />
+    </Icon>
+  );
+}
+
+// ---- Settings ---------------------------------------------------------------
+
+/** lucide: settings */
+export function SettingsIcon({ size = 16 }: IconProps) {
+  return (
+    <Icon size={size}>
+      <path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915" />
+      <circle cx="12" cy="12" r="3" />
+    </Icon>
+  );
+}
+
+/** lucide: x (modal close) */
+export function CloseIcon({ size = 16 }: IconProps) {
+  return (
+    <Icon size={size}>
+      <path d="M18 6 6 18" />
+      <path d="m6 6 12 12" />
+    </Icon>
   );
 }

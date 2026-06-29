@@ -1,4 +1,5 @@
 import { useState, type CSSProperties } from 'react';
+import { useT } from '../lib/i18n';
 import { ChevronRight } from './icons';
 
 type ValueType = 'object' | 'array' | 'string' | 'number' | 'boolean' | 'null';
@@ -52,11 +53,12 @@ function ValueNode({ label, value, depth, forceOpen }: NodeProps) {
 }
 
 function BranchNode({ label, value, type, depth, forceOpen }: NodeProps & { type: 'object' | 'array' }) {
+  const t = useT();
   const [open, setOpen] = useState(forceOpen ?? depth < 1);
   const entries = entriesOf(value, type);
   const open_b = type === 'array' ? '[' : '{';
   const close_b = type === 'array' ? ']' : '}';
-  const summary = type === 'array' ? `${entries.length} items` : `${entries.length} keys`;
+  const summary = type === 'array' ? t('items', { n: entries.length }) : t('keys', { n: entries.length });
 
   return (
     <div className="cfg-node">
@@ -78,7 +80,7 @@ function BranchNode({ label, value, type, depth, forceOpen }: NodeProps & { type
         <div className="cfg-children">
           {entries.length === 0 ? (
             <div className="cfg-row cfg-empty" style={indent(depth + 1)}>
-              （空）
+              {t('empty')}
             </div>
           ) : (
             entries.map(([k, v]) => <ValueNode key={k} label={k} value={v} depth={depth + 1} forceOpen={forceOpen} />)

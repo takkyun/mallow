@@ -1,4 +1,5 @@
 import type { FileTreeController } from '../hooks/useFileTree';
+import { useT } from '../lib/i18n';
 import type { FileEntry } from '../lib/types';
 import { FileTree } from './FileTree';
 
@@ -10,6 +11,7 @@ interface ExplorerProps {
 }
 
 export function Explorer({ tree, selectedPath, onSelect, onOpenFolder }: ExplorerProps) {
+  const t = useT();
   const { rootDir, rootEntries, rootLoading, rootError } = tree;
   const rootName = rootDir ? rootDir.split('/').filter(Boolean).pop() || rootDir : null;
 
@@ -45,22 +47,22 @@ export function Explorer({ tree, selectedPath, onSelect, onOpenFolder }: Explore
   return (
     <aside className="explorer">
       <div className="explorer__header">
-        <span title={rootDir ?? undefined}>{rootName ?? 'エクスプローラ'}</span>
+        <span title={rootDir ?? undefined}>{rootName ?? t('explorer')}</span>
       </div>
       {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions */}
       <div className="explorer__scroll" onKeyDown={onKeyDown}>
         {!rootDir && (
           <div className="explorer__empty">
-            <p>フォルダが開かれていません。</p>
+            <p>{t('noFolderOpen')}</p>
             <button type="button" className="btn" onClick={onOpenFolder}>
-              フォルダを開く
+              {t('openFolder')}
             </button>
           </div>
         )}
-        {rootDir && rootLoading && <div className="tree__status">読み込み中…</div>}
+        {rootDir && rootLoading && <div className="tree__status">{t('loading')}</div>}
         {rootDir && rootError && <div className="tree__status is-error">{rootError}</div>}
         {rootDir && !rootLoading && !rootError && rootEntries.length === 0 && (
-          <div className="explorer__empty">表示できるファイルがありません。</div>
+          <div className="explorer__empty">{t('noFiles')}</div>
         )}
         {rootDir && rootEntries.length > 0 && (
           <FileTree

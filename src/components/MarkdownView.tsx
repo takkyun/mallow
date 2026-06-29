@@ -1,9 +1,11 @@
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { useEffect, useRef, useState } from 'react';
 import { enhanceCodeBlocks } from '../lib/codeblock';
+import { useT } from '../lib/i18n';
 import { renderMarkdown, type RenderResult } from '../lib/markdown';
 import { renderMermaid } from '../lib/mermaid';
 import { captureScrollAnchor, restoreScrollAnchor, type ScrollAnchor } from '../lib/scroll';
+import { CodeIcon, ScanSearchIcon, TableOfContentsIcon } from './icons';
 import { Outline } from './Outline';
 import { SourceView } from './SourceView';
 
@@ -26,6 +28,7 @@ function writeOutlineOpen(open: boolean): void {
 }
 
 export function MarkdownView({ source }: { source: string }) {
+  const t = useT();
   const [result, setResult] = useState<RenderResult | null>(null);
   const [renderError, setRenderError] = useState<string | null>(null);
   const [outlineOpen, setOutlineOpen] = useState<boolean>(readOutlineOpen);
@@ -104,33 +107,44 @@ export function MarkdownView({ source }: { source: string }) {
       <div className={`doc${showOutline ? '' : ' is-outline-closed'}`}>
         <div className="doc__bar">
           {mode === 'preview' && hasOutline && (
-            <button type="button" className="btn doc-outline-toggle" aria-expanded={showOutline} onClick={toggleOutline}>
-              アウトライン
+            <button
+              type="button"
+              className="icon-btn doc-outline-toggle"
+              title={t('outline')}
+              aria-label={t('outline')}
+              aria-expanded={showOutline}
+              onClick={toggleOutline}
+            >
+              <TableOfContentsIcon />
             </button>
           )}
-          <div className="seg" role="group" aria-label="表示モード">
+          <div className="seg" role="group" aria-label={t('viewMode')}>
             <button
               type="button"
               className={`btn${mode === 'preview' ? ' is-active' : ''}`}
+              title={t('preview')}
+              aria-label={t('preview')}
               aria-pressed={mode === 'preview'}
               onClick={() => setMode('preview')}
             >
-              プレビュー
+              <ScanSearchIcon />
             </button>
             <button
               type="button"
               className={`btn${mode === 'source' ? ' is-active' : ''}`}
+              title={t('source')}
+              aria-label={t('source')}
               aria-pressed={mode === 'source'}
               onClick={() => setMode('source')}
             >
-              ソース
+              <CodeIcon />
             </button>
           </div>
         </div>
 
         {mode === 'preview' ? (
           <>
-            {renderError && <div className="doc-error">レンダリングエラー: {renderError}</div>}
+            {renderError && <div className="doc-error">{t('renderError', { message: renderError })}</div>}
             <div className="doc__body">
               <article
                 ref={articleRef}

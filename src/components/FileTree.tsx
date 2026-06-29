@@ -1,13 +1,28 @@
 import { type CSSProperties } from 'react';
 import type { FileTreeState } from '../hooks/useFileTree';
-import type { FileEntry } from '../lib/types';
-import { ChevronRight, FileIcon, FolderIcon } from './icons';
+import { useT } from '../lib/i18n';
+import type { FileEntry, FileKind } from '../lib/types';
+import { ChevronRight, FileChartIcon, FileConfigIcon, FileTextIcon, FolderIcon } from './icons';
 
 const INDENT_STEP = 14;
 const BASE_INDENT = 8;
 
 function indentStyle(depth: number): CSSProperties {
   return { '--row-indent': `${BASE_INDENT + depth * INDENT_STEP}px` } as CSSProperties;
+}
+
+/** Lucide icon for a file kind (directories are handled separately). */
+function FileKindIcon({ kind }: { kind: FileKind }) {
+  switch (kind) {
+    case 'mermaid':
+      return <FileChartIcon />;
+    case 'json':
+    case 'yaml':
+    case 'toml':
+      return <FileConfigIcon />;
+    default:
+      return <FileTextIcon />;
+  }
 }
 
 interface TreeProps {
@@ -47,6 +62,7 @@ interface ItemProps {
 }
 
 function TreeItem({ entry, depth, tree, selectedPath, onSelect, onToggle }: ItemProps) {
+  const t = useT();
   const expanded = entry.isDir && tree.expanded.has(entry.path);
   const children = tree.childrenByPath.get(entry.path);
   const loading = tree.loading.has(entry.path);
@@ -75,7 +91,7 @@ function TreeItem({ entry, depth, tree, selectedPath, onSelect, onToggle }: Item
           {entry.isDir ? <ChevronRight /> : null}
         </span>
         <span className="tree__icon" data-kind={entry.kind}>
-          {entry.isDir ? <FolderIcon /> : <FileIcon />}
+          {entry.isDir ? <FolderIcon /> : <FileKindIcon kind={entry.kind} />}
         </span>
         <span className="tree__label">{entry.name}</span>
       </button>
@@ -84,7 +100,7 @@ function TreeItem({ entry, depth, tree, selectedPath, onSelect, onToggle }: Item
         <>
           {loading && !children && (
             <div className="tree__status" style={childStatusStyle}>
-              読み込み中…
+              {t('loading')}
             </div>
           )}
           {error && (
@@ -94,7 +110,7 @@ function TreeItem({ entry, depth, tree, selectedPath, onSelect, onToggle }: Item
           )}
           {children && children.length === 0 && !error && (
             <div className="tree__status" style={childStatusStyle}>
-              （空）
+              {t('empty')}
             </div>
           )}
           {children && children.length > 0 && (

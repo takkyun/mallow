@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react';
 import { configFormat, parseConfig, shikiLangFor, type ParseErrorInfo } from '../lib/config-parse';
+import { useI18n, type TFn } from '../lib/i18n';
 import type { FileEntry } from '../lib/types';
+import { CodeIcon, ListTreeIcon, Maximize2Icon, Minimize2Icon } from './icons';
 import { ConfigTree } from './ConfigTree';
 import { SourceView } from './SourceView';
 
@@ -10,6 +12,7 @@ interface ConfigViewProps {
 }
 
 export function ConfigView({ source, file }: ConfigViewProps) {
+  const { t } = useI18n();
   const format = useMemo(() => configFormat(file.name), [file.name]);
   const outcome = useMemo(() => parseConfig(source, format), [source, format]);
   const [mode, setMode] = useState<'tree' | 'source'>(outcome.ok ? 'tree' : 'source');
@@ -31,38 +34,48 @@ export function ConfigView({ source, file }: ConfigViewProps) {
       <div className="doc cfg">
         <div className="doc__bar">
           {outcome.ok && mode === 'tree' && (
-            <div className="cfg-expand" role="group" aria-label="展開操作">
-              <button type="button" className="btn" onClick={expandAll}>
-                すべて展開
+            <div className="cfg-expand" role="group" aria-label={t('expandControls')}>
+              <button type="button" className="icon-btn" title={t('expandAll')} aria-label={t('expandAll')} onClick={expandAll}>
+                <Maximize2Icon />
               </button>
-              <button type="button" className="btn" onClick={collapseAll}>
-                すべて折りたたみ
+              <button
+                type="button"
+                className="icon-btn"
+                title={t('collapseAll')}
+                aria-label={t('collapseAll')}
+                onClick={collapseAll}
+              >
+                <Minimize2Icon />
               </button>
             </div>
           )}
           {outcome.ok && (
-            <div className="seg" role="group" aria-label="表示モード">
+            <div className="seg" role="group" aria-label={t('viewMode')}>
               <button
                 type="button"
                 className={`btn${mode === 'tree' ? ' is-active' : ''}`}
+                title={t('tree')}
+                aria-label={t('tree')}
                 aria-pressed={mode === 'tree'}
                 onClick={() => setMode('tree')}
               >
-                ツリー
+                <ListTreeIcon />
               </button>
               <button
                 type="button"
                 className={`btn${mode === 'source' ? ' is-active' : ''}`}
+                title={t('source')}
+                aria-label={t('source')}
                 aria-pressed={mode === 'source'}
                 onClick={() => setMode('source')}
               >
-                ソース
+                <CodeIcon />
               </button>
             </div>
           )}
         </div>
 
-        {!outcome.ok && <ErrorBanner format={format} error={outcome.error} />}
+        {!outcome.ok && <ErrorBanner format={format} error={outcome.error} t={t} />}
 
         {outcome.ok && mode === 'tree' ? (
           <ConfigTree key={treeKey} value={outcome.value} forceOpen={forceOpen} />
@@ -74,12 +87,19 @@ export function ConfigView({ source, file }: ConfigViewProps) {
   );
 }
 
-function ErrorBanner({ format, error }: { format: string; error: ParseErrorInfo }) {
-  const where = error.line !== undefined ? `（${error.line} 行${error.column !== undefined ? ` ${error.column} 列` : ''}）` : '';
+function ErrorBanner({ format, error, t }: { format: string; error: ParseErrorInfo; t: TFn }) {
+  let where = '';
+  if (error.line !== undefined) {
+    where =
+      error.column !== undefined
+        ? t('locLineCol', { line: error.line, column: error.column })
+        : t('locLine', { line: error.line });
+  }
   return (
     <div className="cfg-error-banner" role="alert">
       <strong>
-        {format.toUpperCase()} 構文エラー{where}
+        {t('syntaxError', { format: format.toUpperCase() })}
+        {where}
       </strong>
       <span className="cfg-error-message">{error.message}</span>
     </div>

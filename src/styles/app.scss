@@ -67,7 +67,9 @@
 }
 
 .menu__item {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   width: 100%;
   padding: 6px 10px;
   font: inherit;
@@ -87,6 +89,18 @@
     color: $teal-dark;
     font-weight: 600;
   }
+}
+
+.menu__item-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  color: $muted;
+}
+
+.menu__item.is-active .menu__item-icon {
+  color: $teal-dark;
 }
 
 .menu__label {
@@ -311,4 +325,82 @@
   font-family: $font-mono;
   font-size: 13px;
   color: $ink;
+}
+
+// ---- Footer (status bar): settings entry at the window's bottom-left ---------
+.app__footer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+  height: 32px;
+  padding: 0 6px;
+  border-top: 1px solid $border;
+  background: var(--color-sidebar-bg);
+}
+
+.app__footer .icon-btn {
+  width: 26px;
+  height: 26px;
+}
+
+// ---- Settings modal ---------------------------------------------------------
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgb(0 0 0 / 38%);
+}
+
+.modal {
+  width: 100%;
+  max-width: 420px;
+  max-height: 100%;
+  overflow: auto;
+  background: $surface-raised;
+  border: 1px solid $border;
+  border-radius: 12px;
+  box-shadow: 0 16px 48px rgb(0 0 0 / 32%);
+}
+
+.modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid $border;
+}
+
+.modal__title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: $ink;
+}
+
+.modal__body {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 18px 16px;
+}
+
+.settings-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.settings-group__label {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: $muted;
 }

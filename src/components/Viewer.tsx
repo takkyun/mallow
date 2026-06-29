@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useT } from '../lib/i18n';
 import { readFile } from '../lib/tauri';
 import type { FileEntry } from '../lib/types';
 import { ConfigView } from './ConfigView';
@@ -12,6 +13,7 @@ interface ViewerProps {
 }
 
 export function Viewer({ file, reloadToken }: ViewerProps) {
+  const t = useT();
   const [content, setContent] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -46,7 +48,7 @@ export function Viewer({ file, reloadToken }: ViewerProps) {
   if (!file) {
     return (
       <main className="viewer viewer--empty">
-        <p>ファイルを選択してください</p>
+        <p>{t('selectFile')}</p>
       </main>
     );
   }
@@ -65,7 +67,7 @@ export function Viewer({ file, reloadToken }: ViewerProps) {
   if (content === null) {
     return (
       <main className="viewer">
-        {loading && <div className="viewer__placeholder">読み込み中…</div>}
+        {loading && <div className="viewer__placeholder">{t('loading')}</div>}
       </main>
     );
   }

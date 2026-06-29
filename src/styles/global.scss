@@ -130,6 +130,11 @@ a {
     outline: 2px solid var(--color-focus-ring);
     outline-offset: 1px;
   }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
 }
 
 .visually-hidden {

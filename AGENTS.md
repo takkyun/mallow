@@ -25,16 +25,19 @@ Tauri v2 (Rust) + Vite + React + TypeScript + SCSS. **No Tailwind.**
 
 **Frontend (`src/`)**
 - `App.tsx` — top-level state: open folder, selection, file-watch wiring, explorer
-  width/side, session restore.
+  width/side, session restore, settings-modal open state (footer button, the
+  `menu:settings` event, and the Cmd/Ctrl+, shortcut all open it).
 - `hooks/useFileTree.ts` — centralized lazy file-tree state (expanded set, children
   map, `refresh`, `expandPaths`). The tree components are controlled by this.
 - `components/` — Explorer/FileTree, Viewer (routes by file kind), MarkdownView,
   ConfigView/ConfigTree, SourceView (shared, line-numbered), MermaidView, Outline,
-  Toolbar, OpenWith, ThemePicker, SettingsMenu, icons.
+  Toolbar, OpenWith, ThemePicker, SettingsModal, icons (inlined Lucide SVGs, no
+  runtime dependency).
 - `lib/` — `markdown` (markdown-it pipeline), `shiki` (highlighter singleton +
   `stripPreBackground`), `mermaid` + `mermaid-copy` + `codeblock` (imperative DOM
   enhancements), `frontmatter`, `config-parse`, `scroll` (anchor preservation),
-  `watch`, `settings` (plugin-store), `theme`, `file`, `tauri` (invoke wrappers), `types`.
+  `watch`, `settings` (plugin-store), `theme`, `i18n` (ja/en dictionary + provider/
+  hooks; language persisted in localStorage), `file`, `tauri` (invoke wrappers), `types`.
 - `styles/` — SCSS: `_vars` (palettes + `on-dark` mixin), `global`, `app`,
   `markdown`, `config`, `source`.
 
@@ -45,8 +48,9 @@ Tauri v2 (Rust) + Vite + React + TypeScript + SCSS. **No Tailwind.**
   paths). The watcher handle lives in `WatcherState`.
 - `editors.rs` — `detect_editors` / `open_in_editor` / `reveal_in_os` via
   `std::process`, gated per-OS with `cfg`.
-- `lib.rs` — plugin registration (opener, dialog, store, window-state) + the
-  `invoke_handler`.
+- `lib.rs` — plugin registration (opener, dialog, store, window-state), the
+  `invoke_handler`, and (macOS only) a native app menu whose Settings… item
+  (⌘,) emits the `menu:settings` event the frontend listens for.
 
 ## Conventions
 
@@ -69,6 +73,12 @@ Tauri v2 (Rust) + Vite + React + TypeScript + SCSS. **No Tailwind.**
 - Theme = `data-theme` attribute + CSS-variable palettes (instant switch; also
   styles the non-React rendered HTML). 7 themes. When adding a dark palette, also
   add it to the `on-dark` mixin in `_vars.scss` and apply it in `global.scss`.
+- i18n is a hand-rolled dictionary in `lib/i18n.tsx` (no library). UI strings go
+  through `useT()` / `t(key, params)`; add the key to **both** the `ja` and `en`
+  dictionaries. Language follows localStorage → OS locale → Japanese.
+- Icons are inlined Lucide (https://lucide.dev) SVGs in `components/icons.tsx`
+  (24×24, `stroke="currentColor"`). To add one, copy its path data verbatim rather
+  than adding the `lucide-react` package.
 - Shiki dual theme: light is inlined, dark emitted as `--shiki-dark` and swapped
   under `on-dark`. Code token colors stay github-light/dark regardless of palette.
 - `SourceView` line numbers: Shiki emits `<span class="line">`; CSS uses

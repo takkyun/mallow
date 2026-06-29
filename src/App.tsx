@@ -1,9 +1,13 @@
+import { listen } from '@tauri-apps/api/event';
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
 import { Explorer } from './components/Explorer';
+import { SettingsIcon } from './components/icons';
+import { SettingsModal } from './components/SettingsModal';
 import { Toolbar } from './components/Toolbar';
 import { Viewer } from './components/Viewer';
 import { useFileTree } from './hooks/useFileTree';
 import { ancestorDirs, fileEntryFromPath } from './lib/file';
+import { useT } from './lib/i18n';
 import { loadSettings, saveSetting } from './lib/settings';
 import { pathExists, pickFolder } from './lib/tauri';
 import type { FileEntry } from './lib/types';
@@ -14,11 +18,13 @@ const MIN_WIDTH = 180;
 const MAX_WIDTH = 600;
 
 export default function App() {
+  const t = useT();
   const tree = useFileTree();
   const [selected, setSelected] = useState<FileEntry | null>(null);
   const [reloadToken, setReloadToken] = useState(0);
   const [explorerWidth, setExplorerWidth] = useState(DEFAULT_WIDTH);
   const [explorerSide, setExplorerSide] = useState<'left' | 'right'>('left');
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   const selectedRef = useRef<FileEntry | null>(null);
   const widthRef = useRef(explorerWidth);
@@ -100,6 +106,33 @@ export default function App() {
     };
   }, [refresh]);
 
+  // ---- Settings (modal opened from the footer, the macOS menu, or Cmd/Ctrl+,) ---
+  const openSettings = useCallback(() => setSettingsOpen(true), []);
+
+  useEffect(() => {
+    let unlisten: (() => void) | undefined;
+    let disposed = false;
+    listen('menu:settings', () => setSettingsOpen(true)).then((fn) => {
+      if (disposed) fn();
+      else unlisten = fn;
+    });
+    return () => {
+      disposed = true;
+      unlisten?.();
+    };
+  }, []);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === ',') {
+        e.preventDefault();
+        setSettingsOpen(true);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
   // ---- Explorer resize ------------------------------------------------------
   const [dragging, setDragging] = useState(false);
   const startResize = useCallback(
@@ -145,12 +178,7 @@ export default function App() {
 
   return (
     <div className="app">
-      <Toolbar
-        selected={selected}
-        onOpenFolder={openFolder}
-        explorerSide={explorerSide}
-        onExplorerSideChange={changeSide}
-      />
+      <Toolbar selected={selected} onOpenFolder={openFolder} />
       <div className="app__body" data-side={explorerSide} style={{ '--explorer-width': `${explorerWidth}px` } as CSSProperties}>
         {explorerSide === 'left' ? (
           <>
@@ -166,6 +194,12 @@ export default function App() {
           </>
         )}
       </div>
+      <footer className="app__footer">
+        <button type="button" className="icon-btn" title={t('settings')} aria-label={t('settings')} onClick={openSettings}>
+          <SettingsIcon />
+        </button>
+      </footer>
+      <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} side={explorerSide} onSideChange={changeSide} />
     </div>
   );
 }
