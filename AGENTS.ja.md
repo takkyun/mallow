@@ -14,6 +14,7 @@ pnpm tauri dev      # ホットリロード付きで起動
 pnpm build          # フロントの型チェック(tsc) + バンドル(vite)。FE 変更の検証用
 pnpm tauri build    # リリースビルド + バンドル
 pnpm tauri icon src-tauri/icons/app-icon.png   # 全アプリアイコンの再生成
+pnpm notices        # THIRD-PARTY-NOTICES.md を再生成（同梱する依存ライセンス）
 cargo check         # src-tauri/ 内で実行し Rust を検証
 ```
 
@@ -60,6 +61,9 @@ Tauri v2 (Rust) + Vite + React + TypeScript + SCSS。**Tailwind は不使用。*
 - mallow は独立プロジェクトとして扱う。コード/コメント/ドキュメントに外部プロジェクトを
   「由来」として記述しない。
 - production 依存の追加前に確認する。
+- 第三者ライセンス通知（`THIRD-PARTY-NOTICES.md`）は `pnpm notices`
+  （`scripts/gen-third-party-notices.mjs`）で生成し、`bundle.resources` でアプリに
+  同梱する。依存を変更したら再生成する。
 
 ## 実装メモ / 注意点
 
