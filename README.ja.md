@@ -61,3 +61,13 @@ src-tauri/          Rust バックエンド
   src/editors.rs    エディタ検出・起動・OS で表示
   icons/app-icon.png  アイコンの元画像（再生成の入力）
 ```
+
+## クレジット
+
+- Markdown プレビューア [Shiba](https://github.com/rhysd/Shiba)（rhysd 氏）にインスパイアされています。
+- UI アイコンは [Lucide](https://lucide.dev)（ISC）を使用しています。
+
+## ライセンス
+
+mallow は [MIT License](LICENSE) で配布しています。同梱する第三者コンポーネントの
+ライセンスは [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) を参照してください。

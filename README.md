@@ -61,3 +61,13 @@ src-tauri/          Rust backend
   src/editors.rs    Editor detection / launch / reveal in OS
   icons/app-icon.png  Icon master (input for regeneration)
 ```
+
+## Acknowledgements
+
+- Inspired by [Shiba](https://github.com/rhysd/Shiba), a Markdown previewer by rhysd.
+- UI icons from [Lucide](https://lucide.dev) (ISC).
+
+## License
+
+mallow is licensed under the [MIT License](LICENSE). The licenses of the bundled
+third-party components are listed in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
