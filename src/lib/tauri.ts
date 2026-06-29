@@ -1,7 +1,15 @@
 /** Thin typed wrappers around the Rust commands and Tauri plugin APIs. */
 import { invoke } from '@tauri-apps/api/core';
+import { getCurrentWindow } from '@tauri-apps/api/window';
 import { open as openDialog } from '@tauri-apps/plugin-dialog';
 import type { EditorInfo, FileEntry } from './types';
+
+/** Set the native window title (fire-and-forget; errors are logged). */
+export function setWindowTitle(title: string): void {
+  void getCurrentWindow()
+    .setTitle(title)
+    .catch((e) => console.error('setTitle failed', e));
+}
 
 /** List the immediate children of a directory (directories + supported files). */
 export function readDirTree(path: string): Promise<FileEntry[]> {

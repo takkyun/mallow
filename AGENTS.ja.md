@@ -79,6 +79,10 @@ Tauri v2 (Rust) + Vite + React + TypeScript + SCSS。**Tailwind は不使用。*
 - アイコンは Lucide (https://lucide.dev) の SVG を `components/icons.tsx` に
   インライン化（24×24・`stroke="currentColor"`）。追加時は `lucide-react` を入れず
   パスデータをそのままコピーする。
+- ネイティブのウィンドウタイトルは開いているドキュメントに追従する（`lib/title.ts`:
+  markdown の front-matter `title` があればそれ、なければファイル名、未選択時は `mallow`）。
+  `Viewer` から `setWindowTitle` で設定する。`document.title` では Tauri のウィンドウ
+  タイトルは変わらないため `core:window:allow-set-title` 権限が必要。
 - Shiki のデュアルテーマ: light はインライン、dark は `--shiki-dark` として出力し
   `on-dark` で差し替え。コードのトークン色はパレットに関わらず github-light/dark のまま。
 - `SourceView` の行番号: Shiki は `<span class="line">` を出力するので、CSS は

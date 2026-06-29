@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useT } from '../lib/i18n';
-import { readFile } from '../lib/tauri';
+import { readFile, setWindowTitle } from '../lib/tauri';
+import { documentTitle, windowTitle } from '../lib/title';
 import type { FileEntry } from '../lib/types';
 import { ConfigView } from './ConfigView';
 import { MarkdownView } from './MarkdownView';
@@ -22,14 +23,20 @@ export function Viewer({ file, reloadToken }: ViewerProps) {
     if (!file) {
       setContent(null);
       setError(null);
+      setWindowTitle(windowTitle(null));
       return;
     }
     let cancelled = false;
     setLoading(true);
     setError(null);
+    // Reflect the file name immediately; refine to a front-matter title once read.
+    setWindowTitle(windowTitle(file.name));
     readFile(file.path)
       .then((text) => {
-        if (!cancelled) setContent(text);
+        if (!cancelled) {
+          setContent(text);
+          setWindowTitle(windowTitle(documentTitle(file, text)));
+        }
       })
       .catch((e) => {
         if (!cancelled) {

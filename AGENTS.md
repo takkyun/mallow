@@ -79,6 +79,10 @@ Tauri v2 (Rust) + Vite + React + TypeScript + SCSS. **No Tailwind.**
 - Icons are inlined Lucide (https://lucide.dev) SVGs in `components/icons.tsx`
   (24×24, `stroke="currentColor"`). To add one, copy its path data verbatim rather
   than adding the `lucide-react` package.
+- The native window title tracks the open document (`lib/title.ts`: markdown
+  front-matter `title` when present, else the file name; `mallow` when none). It is
+  set from `Viewer` via `setWindowTitle` — note `document.title` does NOT change a
+  Tauri window title, so this needs the `core:window:allow-set-title` capability.
 - Shiki dual theme: light is inlined, dark emitted as `--shiki-dark` and swapped
   under `on-dark`. Code token colors stay github-light/dark regardless of palette.
 - `SourceView` line numbers: Shiki emits `<span class="line">`; CSS uses
