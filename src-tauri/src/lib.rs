@@ -26,15 +26,22 @@ pub fn run() {
             // (⌘,). Other platforms reach settings via the footer button.
             #[cfg(target_os = "macos")]
             {
-                use tauri::menu::{MenuBuilder, MenuItemBuilder, SubmenuBuilder};
+                use tauri::menu::{AboutMetadataBuilder, MenuBuilder, MenuItemBuilder, SubmenuBuilder};
 
                 let handle = app.handle().clone();
                 let settings_item = MenuItemBuilder::with_id("settings", "Settings…")
                     .accelerator("CmdOrCtrl+,")
                     .build(&handle)?;
 
+                // Reuse the bundled app icon (the mallow logo) in the About dialog.
+                let about_metadata = AboutMetadataBuilder::new()
+                    .name(Some("mallow"))
+                    .version(Some(env!("CARGO_PKG_VERSION")))
+                    .icon(app.default_window_icon().cloned())
+                    .build();
+
                 let app_menu = SubmenuBuilder::new(&handle, "mallow")
-                    .about(None)
+                    .about(Some(about_metadata))
                     .separator()
                     .item(&settings_item)
                     .separator()

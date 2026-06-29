@@ -19,10 +19,12 @@
 }
 
 .toolbar__brand {
-  font-weight: 700;
-  font-size: 15px;
-  color: $teal;
-  letter-spacing: 0.02em;
+  display: block;
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+  // The source PNG already has rounded corners + transparency.
+  user-select: none;
 }
 
 .toolbar__path {
