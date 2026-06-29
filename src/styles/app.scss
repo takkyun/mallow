@@ -1,0 +1,314 @@
+@use './vars' as *;
+
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+// ---- Toolbar ----------------------------------------------------------------
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: $toolbar-height;
+  flex: 0 0 auto;
+  padding: 0 12px;
+  border-bottom: 1px solid $border;
+  background: var(--color-bg);
+}
+
+.toolbar__brand {
+  font-weight: 700;
+  font-size: 15px;
+  color: $teal;
+  letter-spacing: 0.02em;
+}
+
+.toolbar__path {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 12px;
+  color: $muted;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  direction: rtl; // keep the tail (filename) visible when truncating
+  text-align: left;
+}
+
+.toolbar__spacer {
+  flex: 1 1 auto;
+}
+
+.toolbar__actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+}
+
+// ---- Dropdown menu (toolbar "open with") ------------------------------------
+.menu {
+  position: relative;
+}
+
+.menu__popup {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 50;
+  min-width: 200px;
+  padding: 4px;
+  background: $surface-raised;
+  border: 1px solid $border;
+  border-radius: 8px;
+  box-shadow: 0 8px 28px rgb(0 0 0 / 22%);
+}
+
+.menu__item {
+  display: block;
+  width: 100%;
+  padding: 6px 10px;
+  font: inherit;
+  font-size: 13px;
+  color: $ink;
+  text-align: left;
+  background: none;
+  border: 0;
+  border-radius: 5px;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--color-hover-bg);
+  }
+
+  &.is-active {
+    color: $teal-dark;
+    font-weight: 600;
+  }
+}
+
+.menu__label {
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: $muted;
+}
+
+.menu__sep {
+  height: 1px;
+  margin: 4px 2px;
+  background: $border;
+}
+
+.menu__empty {
+  padding: 6px 10px;
+  font-size: 12px;
+  color: $muted;
+}
+
+// ---- Body: explorer | viewer ------------------------------------------------
+.app__body {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.explorer {
+  display: flex;
+  flex-direction: column;
+  width: var(--explorer-width, 280px);
+  min-width: $explorer-min-width;
+  max-width: $explorer-max-width;
+  flex: 0 0 auto;
+  border-right: 1px solid $border;
+  background: var(--color-sidebar-bg);
+  overflow: hidden;
+}
+
+// Explorer on the right: flip the divider border.
+.app__body[data-side='right'] .explorer {
+  border-right: 0;
+  border-left: 1px solid $border;
+}
+
+.explorer__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px 6px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: $muted;
+}
+
+.explorer__scroll {
+  flex: 1 1 auto;
+  overflow: auto;
+  padding: 2px 0 12px;
+}
+
+.explorer__empty {
+  padding: 16px 12px;
+  font-size: 13px;
+  color: $muted;
+}
+
+// ---- File tree --------------------------------------------------------------
+.tree,
+.tree__group {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.tree__row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  padding: 3px 8px 3px var(--row-indent, 8px);
+  font-size: 13px;
+  line-height: 1.5;
+  color: $ink;
+  background: none;
+  border: 0;
+  text-align: left;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  &:hover {
+    background: var(--color-hover-bg);
+  }
+
+  &.is-selected {
+    background: var(--color-selection-bg);
+    color: $teal-dark;
+    font-weight: 600;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-focus-ring);
+    outline-offset: -2px;
+  }
+}
+
+.tree__chevron {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  color: $faint;
+  transition: transform 0.12s ease;
+
+  &.is-open {
+    transform: rotate(90deg);
+  }
+
+  // Files get no chevron but keep the same indent slot.
+  &.is-leaf {
+    visibility: hidden;
+  }
+}
+
+.tree__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+}
+
+// Per-kind accent for the file dot/icon.
+.tree__icon[data-kind='directory'] {
+  color: $muted;
+}
+
+.tree__icon[data-kind='markdown'] {
+  color: $link;
+}
+
+.tree__icon[data-kind='mermaid'] {
+  color: $orange;
+}
+
+.tree__icon[data-kind='json'] {
+  color: $teal;
+}
+
+.tree__icon[data-kind='yaml'] {
+  color: #8957e5; // violet
+}
+
+.tree__icon[data-kind='toml'] {
+  color: $danger;
+}
+
+.tree__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tree__status {
+  padding: 3px 8px 3px var(--row-indent, 8px);
+  font-size: 12px;
+  color: $muted;
+}
+
+.tree__status.is-error {
+  color: $danger;
+}
+
+// ---- Resizer ----------------------------------------------------------------
+.app__resizer {
+  width: 5px;
+  margin: 0 -2px;
+  flex: 0 0 auto;
+  cursor: col-resize;
+  background: none;
+  border: 0;
+  z-index: 2;
+
+  &:hover,
+  &.is-dragging {
+    background: var(--color-focus-ring);
+  }
+}
+
+// ---- Viewer -----------------------------------------------------------------
+.viewer {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  background: var(--color-bg);
+}
+
+.viewer--empty,
+.viewer__placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 100%;
+  color: $muted;
+}
+
+.viewer__placeholder code {
+  font-family: $font-mono;
+  font-size: 13px;
+  color: $ink;
+}

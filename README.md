@@ -1,0 +1,63 @@
+# mallow
+
+> 日本語: [README.ja.md](README.ja.md)
+
+A lightweight Markdown / config-file viewer. Open a folder, pick a file from the
+tree, and view Markdown with GitHub-equivalent rendering or config files
+(JSON / YAML / TOML family) as a collapsible hierarchical tree.
+
+## Features
+
+- **Two-column UI**: file tree on the left (folder hierarchy, lazy-loaded), viewer on the right.
+- **Markdown rendering**
+  - GitHub-flavored Markdown (tables, `:emoji:`, GFM alerts `> [!NOTE]`, …)
+  - Code-block syntax highlighting (Shiki / github-light · github-dark) with copy
+  - mermaid diagrams (copy as PNG / SVG)
+  - Table of contents (outline with scroll-spy)
+  - Preview / source toggle (source view has line numbers)
+- **Config files** (json / jsonc / json5 / jsonl / ndjson / yaml / yml / toml)
+  - Collapsible tree (expand/collapse all, tree/source toggle)
+  - On a syntax error, switches to the source view and highlights the offending line
+- **Standalone mermaid files** (.mmd / .mermaid)
+- **Live reload**: edits to the open file are detected and re-rendered automatically
+  (scroll position preserved); the tree follows changes too.
+- **Open in editor**: detects and launches VS Code / Zed / CotEditor / mi (macOS),
+  Notepad++ / Sakura (Windows), etc. Can also reveal the file in the OS file manager.
+- **Themes**: light / dark / auto + Solarized Light/Dark · Dracula · Nord.
+- **Persisted settings / session restore**: theme, explorer width and side, the last
+  opened folder/file, and window geometry are saved and restored on the next launch.
+
+## Tech stack
+
+- [Tauri v2](https://v2.tauri.app/) (Rust backend + OS-native WebView)
+- Vite + React + TypeScript
+- SCSS (no Tailwind)
+- markdown-it + @shikijs/markdown-it + mermaid + markdown-it-emoji / -github-alerts / -anchor
+- Config parsing: yaml / smol-toml / jsonc-parser / json5
+
+## Development
+
+```sh
+pnpm install
+pnpm tauri dev      # run in dev (hot reload)
+pnpm tauri build    # release build (produces .app / .dmg, etc.)
+pnpm build          # frontend type-check + bundle only
+
+# Regenerate the app icons from the master image
+pnpm tauri icon src-tauri/icons/app-icon.png
+```
+
+## Layout
+
+```
+src/                Frontend (React + TS)
+  components/        Explorer / Viewer / MarkdownView / ConfigView / SourceView / ...
+  lib/              markdown, shiki, mermaid, config-parse, frontmatter, watch, settings, theme ...
+  hooks/useFileTree  Centralized file-tree state (lazy load, refresh, expansion)
+  styles/           SCSS (_vars / global / app / markdown / config / source)
+src-tauri/          Rust backend
+  src/commands.rs   read_dir_tree / read_file / path_exists (std::fs)
+  src/watch.rs      Recursive file watching via notify (emits the fs:change event)
+  src/editors.rs    Editor detection / launch / reveal in OS
+  icons/app-icon.png  Icon master (input for regeneration)
+```

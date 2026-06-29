@@ -1,0 +1,78 @@
+import type { FileTreeController } from '../hooks/useFileTree';
+import type { FileEntry } from '../lib/types';
+import { FileTree } from './FileTree';
+
+interface ExplorerProps {
+  tree: FileTreeController;
+  selectedPath: string | null;
+  onSelect: (entry: FileEntry) => void;
+  onOpenFolder: () => void;
+}
+
+export function Explorer({ tree, selectedPath, onSelect, onOpenFolder }: ExplorerProps) {
+  const { rootDir, rootEntries, rootLoading, rootError } = tree;
+  const rootName = rootDir ? rootDir.split('/').filter(Boolean).pop() || rootDir : null;
+
+  // Roving keyboard navigation over the visible tree rows.
+  function onKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
+    if (!['ArrowDown', 'ArrowUp', 'ArrowLeft', 'ArrowRight'].includes(e.key)) return;
+    const rows = Array.from(e.currentTarget.querySelectorAll<HTMLButtonElement>('.tree__row'));
+    const idx = rows.indexOf(document.activeElement as HTMLButtonElement);
+    if (idx === -1) {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        rows[0]?.focus();
+      }
+      return;
+    }
+    const current = rows[idx];
+    const expanded = current.getAttribute('aria-expanded');
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      rows[Math.min(idx + 1, rows.length - 1)]?.focus();
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      rows[Math.max(idx - 1, 0)]?.focus();
+    } else if (e.key === 'ArrowRight' && expanded === 'false') {
+      e.preventDefault();
+      current.click();
+    } else if (e.key === 'ArrowLeft' && expanded === 'true') {
+      e.preventDefault();
+      current.click();
+    }
+  }
+
+  return (
+    <aside className="explorer">
+      <div className="explorer__header">
+        <span title={rootDir ?? undefined}>{rootName ?? 'エクスプローラ'}</span>
+      </div>
+      {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions */}
+      <div className="explorer__scroll" onKeyDown={onKeyDown}>
+        {!rootDir && (
+          <div className="explorer__empty">
+            <p>フォルダが開かれていません。</p>
+            <button type="button" className="btn" onClick={onOpenFolder}>
+              フォルダを開く
+            </button>
+          </div>
+        )}
+        {rootDir && rootLoading && <div className="tree__status">読み込み中…</div>}
+        {rootDir && rootError && <div className="tree__status is-error">{rootError}</div>}
+        {rootDir && !rootLoading && !rootError && rootEntries.length === 0 && (
+          <div className="explorer__empty">表示できるファイルがありません。</div>
+        )}
+        {rootDir && rootEntries.length > 0 && (
+          <FileTree
+            entries={rootEntries}
+            depth={0}
+            tree={tree}
+            selectedPath={selectedPath}
+            onSelect={onSelect}
+            onToggle={tree.toggle}
+          />
+        )}
+      </div>
+    </aside>
+  );
+}

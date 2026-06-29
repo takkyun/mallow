@@ -1,0 +1,40 @@
+/** Thin typed wrappers around the Rust commands and Tauri plugin APIs. */
+import { invoke } from '@tauri-apps/api/core';
+import { open as openDialog } from '@tauri-apps/plugin-dialog';
+import type { EditorInfo, FileEntry } from './types';
+
+/** List the immediate children of a directory (directories + supported files). */
+export function readDirTree(path: string): Promise<FileEntry[]> {
+  return invoke<FileEntry[]>('read_dir_tree', { path });
+}
+
+/** Read a text file as UTF-8 (rejects oversized files on the Rust side). */
+export function readFile(path: string): Promise<string> {
+  return invoke<string>('read_file', { path });
+}
+
+/** Whether a path still exists (used to validate a restored session). */
+export function pathExists(path: string): Promise<boolean> {
+  return invoke<boolean>('path_exists', { path });
+}
+
+/** Prompt the user to pick a folder; returns its path or null if cancelled. */
+export async function pickFolder(): Promise<string | null> {
+  const result = await openDialog({ directory: true, multiple: false });
+  return typeof result === 'string' ? result : null;
+}
+
+/** Editors detected as installed on this platform. */
+export function detectEditors(): Promise<EditorInfo[]> {
+  return invoke<EditorInfo[]>('detect_editors');
+}
+
+/** Open a file in the given editor. */
+export function openInEditor(id: string, path: string): Promise<void> {
+  return invoke('open_in_editor', { id, path });
+}
+
+/** Reveal a file in the OS file manager (Finder / Explorer). */
+export function revealInOs(path: string): Promise<void> {
+  return invoke('reveal_in_os', { path });
+}

@@ -1,0 +1,201 @@
+// Design tokens for the mallow desktop shell.
+//
+// Colors are authored as CSS custom properties so the theme can be swapped at
+// runtime / by OS setting. The SCSS aliases below are thin wrappers over those
+// variables, so `color: $ink` keeps working and follows the active theme.
+
+// ---- Themeable color tokens (alias the CSS variables) -----------------------
+$teal: var(--color-teal);
+$teal-dark: var(--color-teal-dark);
+$orange: var(--color-orange);
+$ink: var(--color-ink);
+$muted: var(--color-muted);
+$faint: var(--color-faint);
+$link: var(--color-link);
+$border: var(--color-border);
+$border-strong: var(--color-border-strong);
+$surface: var(--color-surface);
+$surface-raised: var(--color-surface-raised);
+$success: var(--color-success);
+$danger: var(--color-danger);
+
+// ---- Light / dark palettes --------------------------------------------------
+@mixin theme-light {
+  --color-bg: #fff;
+  --color-surface: #f6f8fa;
+  --color-surface-raised: #fff;
+  --color-sidebar-bg: #f6f8fa;
+  --color-ink: #1f2933;
+  --color-muted: #6b7280;
+  --color-faint: #9aa3ad;
+  --color-link: #2563eb;
+  --color-border: #d0d7de;
+  --color-border-strong: #afb8c1;
+  --color-teal: #2e8c8c;
+  --color-teal-dark: #246f6f;
+  --color-orange: #f5a623;
+  --color-success: #1a7f37;
+  --color-danger: #cf222e;
+  --color-selection-bg: rgb(46 140 140 / 12%);
+  --color-hover-bg: rgb(31 41 51 / 5%);
+  --color-code-inline-bg: rgb(175 184 193 / 20%);
+  --color-focus-ring: rgb(46 140 140 / 25%);
+  --color-attention-bg: #fff8c5;
+  --color-attention-fg: #9a6700;
+  --color-attention-border: rgb(212 167 44 / 40%);
+}
+
+@mixin theme-dark {
+  --color-bg: #0d1117;
+  --color-surface: #161b22;
+  --color-surface-raised: #21262d;
+  --color-sidebar-bg: #0d1117;
+  --color-ink: #e6edf3;
+  --color-muted: #8b949e;
+  --color-faint: #6e7681;
+  --color-link: #58a6ff;
+  --color-border: #30363d;
+  --color-border-strong: #484f58;
+  --color-teal: #2e9d9d;
+  --color-teal-dark: #257f7f;
+  --color-orange: #e3a008;
+  --color-success: #3fb950;
+  --color-danger: #f85149;
+  --color-selection-bg: rgb(46 157 157 / 18%);
+  --color-hover-bg: rgb(230 237 243 / 6%);
+  --color-code-inline-bg: rgb(110 118 129 / 40%);
+  --color-focus-ring: rgb(46 157 157 / 45%);
+  --color-attention-bg: rgb(187 128 9 / 15%);
+  --color-attention-fg: #d29922;
+  --color-attention-border: rgb(187 128 9 / 40%);
+}
+
+// ---- Extra palettes ---------------------------------------------------------
+@mixin theme-solarized-light {
+  --color-bg: #fdf6e3;
+  --color-surface: #eee8d5;
+  --color-surface-raised: #fdf6e3;
+  --color-sidebar-bg: #eee8d5;
+  --color-ink: #586e75;
+  --color-muted: #93a1a1;
+  --color-faint: #a9b6b6;
+  --color-link: #268bd2;
+  --color-border: #ded8c3;
+  --color-border-strong: #c8c2ad;
+  --color-teal: #2aa198;
+  --color-teal-dark: #1f7a73;
+  --color-orange: #cb4b16;
+  --color-success: #859900;
+  --color-danger: #dc322f;
+  --color-selection-bg: rgb(42 161 152 / 14%);
+  --color-hover-bg: rgb(88 110 117 / 7%);
+  --color-code-inline-bg: rgb(147 161 161 / 22%);
+  --color-focus-ring: rgb(38 139 210 / 30%);
+  --color-attention-bg: #fbf3d0;
+  --color-attention-fg: #b58900;
+  --color-attention-border: rgb(181 137 0 / 40%);
+}
+
+@mixin theme-solarized-dark {
+  --color-bg: #002b36;
+  --color-surface: #073642;
+  --color-surface-raised: #0a4a5a;
+  --color-sidebar-bg: #002b36;
+  --color-ink: #93a1a1;
+  --color-muted: #768d8d;
+  --color-faint: #586e75;
+  --color-link: #268bd2;
+  --color-border: #0e4b59;
+  --color-border-strong: #16627a;
+  --color-teal: #2aa198;
+  --color-teal-dark: #34c0b5;
+  --color-orange: #cb4b16;
+  --color-success: #859900;
+  --color-danger: #dc322f;
+  --color-selection-bg: rgb(42 161 152 / 18%);
+  --color-hover-bg: rgb(147 161 161 / 8%);
+  --color-code-inline-bg: rgb(88 110 117 / 35%);
+  --color-focus-ring: rgb(38 139 210 / 45%);
+  --color-attention-bg: rgb(181 137 0 / 15%);
+  --color-attention-fg: #b58900;
+  --color-attention-border: rgb(181 137 0 / 40%);
+}
+
+@mixin theme-dracula {
+  --color-bg: #282a36;
+  --color-surface: #21222c;
+  --color-surface-raised: #343746;
+  --color-sidebar-bg: #21222c;
+  --color-ink: #f8f8f2;
+  --color-muted: #9aa0c0;
+  --color-faint: #6272a4;
+  --color-link: #8be9fd;
+  --color-border: #44475a;
+  --color-border-strong: #565a72;
+  --color-teal: #50fa7b;
+  --color-teal-dark: #69ff96;
+  --color-orange: #ffb86c;
+  --color-success: #50fa7b;
+  --color-danger: #ff5555;
+  --color-selection-bg: rgb(139 233 253 / 16%);
+  --color-hover-bg: rgb(248 248 242 / 6%);
+  --color-code-inline-bg: rgb(98 114 164 / 35%);
+  --color-focus-ring: rgb(139 233 253 / 40%);
+  --color-attention-bg: rgb(255 184 108 / 15%);
+  --color-attention-fg: #ffb86c;
+  --color-attention-border: rgb(255 184 108 / 40%);
+}
+
+@mixin theme-nord {
+  --color-bg: #2e3440;
+  --color-surface: #3b4252;
+  --color-surface-raised: #434c5e;
+  --color-sidebar-bg: #2e3440;
+  --color-ink: #eceff4;
+  --color-muted: #9aa6bd;
+  --color-faint: #6d7a92;
+  --color-link: #88c0d0;
+  --color-border: #434c5e;
+  --color-border-strong: #4c566a;
+  --color-teal: #8fbcbb;
+  --color-teal-dark: #a3d0cf;
+  --color-orange: #d08770;
+  --color-success: #a3be8c;
+  --color-danger: #bf616a;
+  --color-selection-bg: rgb(136 192 208 / 16%);
+  --color-hover-bg: rgb(236 239 244 / 6%);
+  --color-code-inline-bg: rgb(76 86 106 / 45%);
+  --color-focus-ring: rgb(136 192 208 / 40%);
+  --color-attention-bg: rgb(235 203 139 / 15%);
+  --color-attention-fg: #ebcb8b;
+  --color-attention-border: rgb(235 203 139 / 40%);
+}
+
+// Apply `@content` only when the document is effectively in dark mode — any of
+// the dark palettes, or the OS being dark while in auto / unset.
+@mixin on-dark {
+  :root[data-theme='dark'] &,
+  :root[data-theme='solarized-dark'] &,
+  :root[data-theme='dracula'] &,
+  :root[data-theme='nord'] & {
+    @content;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root[data-theme='auto'] &,
+    :root:not([data-theme]) & {
+      @content;
+    }
+  }
+}
+
+// ---- Type (theme-invariant) -------------------------------------------------
+$font-jp:
+  'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'BIZ UDPGothic', 'Yu Gothic', 'Meiryo', system-ui,
+  sans-serif;
+$font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+
+// ---- Layout -----------------------------------------------------------------
+$toolbar-height: 44px;
+$explorer-min-width: 180px;
+$explorer-max-width: 600px;

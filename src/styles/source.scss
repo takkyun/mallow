@@ -1,0 +1,64 @@
+@use './vars' as *;
+
+// Segmented toggle shared by the markdown (preview/source) and config
+// (tree/source) view-mode switches.
+.seg {
+  display: flex;
+  gap: 4px;
+
+  .btn.is-active {
+    color: $teal-dark;
+    border-color: $teal;
+    background: var(--color-selection-bg);
+  }
+}
+
+// ---- Syntax-highlighted source view with line numbers -----------------------
+.src-view pre.shiki {
+  margin: 0;
+  padding: 12px 0;
+  overflow: auto;
+  font-size: 13px;
+  line-height: 1.6;
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: 8px;
+
+  // Dark-mode token swap (same recipe as markdown code blocks).
+  @include on-dark {
+    &,
+    span {
+      color: var(--shiki-dark) !important;
+    }
+  }
+}
+
+// `display: grid` turns each `.line` into a full-width row, ignoring the
+// inter-line newline text nodes — so line numbers and full-width line
+// highlights work cleanly.
+.src-view pre.shiki code {
+  display: grid;
+  counter-reset: line;
+}
+
+.src-view .line {
+  display: block;
+  padding-right: 16px;
+}
+
+.src-view .line::before {
+  counter-increment: line;
+  content: counter(line);
+  display: inline-block;
+  width: 3.5em;
+  margin-right: 1em;
+  padding-right: 0.9em;
+  text-align: right;
+  color: $faint;
+  border-right: 1px solid $border;
+  user-select: none;
+}
+
+.src-view .line.src-error-line {
+  background: rgb(207 34 46 / 14%);
+}

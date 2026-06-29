@@ -1,0 +1,145 @@
+@use './vars' as *;
+
+// ---- Theme palette ----------------------------------------------------------
+// Light is the default; dark is applied when forced via `data-theme="dark"` or
+// when following the OS while in auto / unset. The inline bootstrap in index.html
+// sets `data-theme` before first paint to avoid a flash.
+:root {
+  color-scheme: light;
+
+  @include theme-light;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  @include theme-dark;
+}
+
+:root[data-theme='solarized-light'] {
+  color-scheme: light;
+
+  @include theme-solarized-light;
+}
+
+:root[data-theme='solarized-dark'] {
+  color-scheme: dark;
+
+  @include theme-solarized-dark;
+}
+
+:root[data-theme='dracula'] {
+  color-scheme: dark;
+
+  @include theme-dracula;
+}
+
+:root[data-theme='nord'] {
+  color-scheme: dark;
+
+  @include theme-nord;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root[data-theme='auto'],
+  :root:not([data-theme]) {
+    color-scheme: dark;
+
+    @include theme-dark;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: $font-jp;
+  color: $ink;
+  background: var(--color-bg);
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+
+  // Desktop app chrome: never let the whole window rubber-band / select.
+  overflow: hidden;
+}
+
+a {
+  color: $link;
+}
+
+// Shared button reset for the toolbar / tree controls.
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  font: inherit;
+  font-size: 13px;
+  color: $ink;
+  background: $surface-raised;
+  border: 1px solid $border;
+  border-radius: 6px;
+  cursor: pointer;
+
+  &:hover {
+    border-color: $border-strong;
+    background: var(--color-hover-bg);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-focus-ring);
+    outline-offset: 1px;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  color: $muted;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+
+  &:hover {
+    color: $ink;
+    background: var(--color-hover-bg);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-focus-ring);
+    outline-offset: 1px;
+  }
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}

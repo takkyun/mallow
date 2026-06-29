@@ -1,0 +1,131 @@
+@use './vars' as *;
+
+// ---- Config viewer ----------------------------------------------------------
+.doc.cfg {
+  max-width: 960px;
+}
+
+.doc.cfg .doc__bar {
+  justify-content: space-between;
+}
+
+.cfg-expand {
+  display: flex;
+  gap: 4px;
+}
+
+// ---- Collapsible tree -------------------------------------------------------
+.cfg-tree {
+  font-family: $font-mono;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.cfg-row {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 1px 8px 1px var(--cfg-indent, 8px);
+  font: inherit;
+  color: $ink;
+  background: none;
+  border: 0;
+  text-align: left;
+  white-space: pre;
+}
+
+button.cfg-row {
+  cursor: pointer;
+
+  &:hover {
+    background: var(--color-hover-bg);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-focus-ring);
+    outline-offset: -2px;
+  }
+}
+
+.cfg-chevron {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  flex: 0 0 auto;
+  color: $faint;
+  transition: transform 0.12s ease;
+
+  &.is-open {
+    transform: rotate(90deg);
+  }
+
+  &.is-leaf {
+    visibility: hidden;
+  }
+}
+
+.cfg-key {
+  color: var(--color-link);
+}
+
+.cfg-punct {
+  color: $muted;
+}
+
+.cfg-bracket {
+  color: $muted;
+}
+
+.cfg-preview {
+  color: $faint;
+  font-size: 11px;
+  font-style: italic;
+}
+
+.cfg-empty {
+  color: $faint;
+}
+
+// Primitive value colors (roughly GitHub-light token hues; readable in dark too).
+.cfg-value--string {
+  color: var(--color-success);
+}
+
+.cfg-value--number {
+  color: var(--color-link);
+}
+
+.cfg-value--boolean {
+  color: var(--color-orange);
+}
+
+.cfg-value--null {
+  color: $faint;
+}
+
+// ---- Source view + error mode ----------------------------------------------
+.cfg-error-banner {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0 0 14px;
+  padding: 10px 14px;
+  color: $ink;
+  background: var(--color-attention-bg);
+  border: 1px solid $danger;
+  border-left-width: 4px;
+  border-radius: 8px;
+
+  strong {
+    color: $danger;
+  }
+}
+
+.cfg-error-message {
+  font-family: $font-mono;
+  font-size: 12px;
+  color: $muted;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
