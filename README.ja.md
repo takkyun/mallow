@@ -59,6 +59,8 @@ pnpm install
 pnpm tauri dev      # 開発起動（ホットリロード）
 pnpm tauri build    # リリースビルド（.app / .dmg などを生成）
 pnpm build          # フロントの型チェック + バンドルのみ
+pnpm test           # フロントのユニットテスト（Vitest）
+cargo test          # Rust のユニットテスト（src-tauri/ 内で実行）
 
 # アプリアイコンの再生成（元画像から各サイズ/形式を生成）
 pnpm tauri icon src-tauri/icons/app-icon.png

@@ -59,6 +59,8 @@ pnpm install
 pnpm tauri dev      # run in dev (hot reload)
 pnpm tauri build    # release build (produces .app / .dmg, etc.)
 pnpm build          # frontend type-check + bundle only
+pnpm test           # frontend unit tests (Vitest)
+cargo test          # Rust unit tests (run inside src-tauri/)
 
 # Regenerate the app icons from the master image
 pnpm tauri icon src-tauri/icons/app-icon.png

@@ -12,10 +12,12 @@ standalone, lightweight desktop Markdown / config-file viewer. See
 pnpm install
 pnpm tauri dev      # run the app with hot reload
 pnpm build          # frontend type-check (tsc) + bundle (vite) — validate FE changes
+pnpm test           # frontend unit tests (Vitest, run once); pnpm test:watch to watch
 pnpm tauri build    # release build + bundle
 pnpm tauri icon src-tauri/icons/app-icon.png   # regenerate all app icons
 pnpm notices        # regenerate THIRD-PARTY-NOTICES.md (bundled dep licenses)
 cargo check         # run inside src-tauri/ to validate Rust
+cargo test          # run inside src-tauri/ to run the Rust unit tests
 ```
 
 ## Stack
@@ -109,10 +111,12 @@ Tauri v2 (Rust) + Vite + React + TypeScript + SCSS. **No Tailwind.**
 
 ## Verifying changes
 
-- Frontend: `pnpm build` (tsc + vite). For pure-logic modules (e.g.
-  `markdown`, `config-parse`, `frontmatter`), a quick `pnpm dlx tsx <script>`
-  importing from `src/lib/*` is a fast non-GUI check.
-- Backend: `cargo check` inside `src-tauri/`.
+- Frontend: `pnpm build` (tsc + vite) and `pnpm test` (Vitest). Unit tests live
+  next to the code as `src/**/*.test.ts` and cover the pure-logic modules
+  (`markdown` — incl. the untrusted-input security boundary — `config-parse`,
+  `frontmatter`, `title`). Run a Node environment, so no jsdom/GUI is needed.
+- Backend: `cargo check` and `cargo test` inside `src-tauri/`. The `commands`
+  module has unit tests (a small self-cleaning temp-dir helper, no `tempfile` dep).
 - End-to-end: `pnpm tauri dev` (GUI) or `pnpm tauri build`.
 
 ## Known follow-ups

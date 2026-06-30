@@ -12,10 +12,12 @@
 pnpm install
 pnpm tauri dev      # ホットリロード付きで起動
 pnpm build          # フロントの型チェック(tsc) + バンドル(vite)。FE 変更の検証用
+pnpm test           # フロントのユニットテスト(Vitest, 単発実行)。watch は pnpm test:watch
 pnpm tauri build    # リリースビルド + バンドル
 pnpm tauri icon src-tauri/icons/app-icon.png   # 全アプリアイコンの再生成
 pnpm notices        # THIRD-PARTY-NOTICES.md を再生成（同梱する依存ライセンス）
 cargo check         # src-tauri/ 内で実行し Rust を検証
+cargo test          # src-tauri/ 内で実行し Rust のユニットテストを走らせる
 ```
 
 ## スタック
@@ -108,10 +110,12 @@ Tauri v2 (Rust) + Vite + React + TypeScript + SCSS。**Tailwind は不使用。*
 
 ## 変更の検証
 
-- フロント: `pnpm build`（tsc + vite）。純ロジックのモジュール（`markdown`・
-  `config-parse`・`frontmatter` など）は `pnpm dlx tsx <script>` で `src/lib/*` を
-  import して回す GUI 不要チェックが速い。
-- バックエンド: `src-tauri/` 内で `cargo check`。
+- フロント: `pnpm build`（tsc + vite）と `pnpm test`（Vitest）。ユニットテストは
+  コードと同じ場所に `src/**/*.test.ts` として置き、純ロジックのモジュール（`markdown`
+  ＝未信頼入力のセキュリティ境界含む・`config-parse`・`frontmatter`・`title`）を
+  カバーする。Node 環境で走るため jsdom/GUI は不要。
+- バックエンド: `src-tauri/` 内で `cargo check` と `cargo test`。`commands` モジュールに
+  ユニットテストがある（`tempfile` 依存を避けた自己クリーンアップ式の temp-dir ヘルパー）。
 - エンドツーエンド: `pnpm tauri dev`（GUI）または `pnpm tauri build`。
 
 ## 既知の未対応
