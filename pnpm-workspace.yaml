@@ -1,7 +1,18 @@
 # pnpm settings live here, not in package.json's "pnpm" field, which pnpm 11+
-# no longer reads. Allow the build scripts of these dependencies to run so a
-# fresh `pnpm install` produces working binaries (esbuild) / native bindings
-# (@parcel/watcher); without this, pnpm 10/11 reports ERR_PNPM_IGNORED_BUILDS.
+# no longer reads.
+#
+# These dependencies need their install/build scripts to run on a fresh install
+# (esbuild's postinstall, @parcel/watcher's native build). Without approval pnpm
+# reports ERR_PNPM_IGNORED_BUILDS, so `pnpm install` — and therefore the
+# documented `pnpm test` / `pnpm build` — fails on a clean checkout. The two keys
+# below cover both pnpm generations:
+#   - onlyBuiltDependencies: the allowlist read by pnpm 9/10
+#   - allowBuilds:           the per-package approval pnpm 11+ actually gates on
+#                            (onlyBuiltDependencies alone no longer runs the
+#                            scripts there)
 onlyBuiltDependencies:
   - esbuild
   - '@parcel/watcher'
+allowBuilds:
+  esbuild: true
+  '@parcel/watcher': true
