@@ -24,7 +24,13 @@ function loadMermaid(): Promise<Mermaid> {
 function initMermaid(mermaid: Mermaid, theme: Resolved): void {
   mermaid.initialize({
     startOnLoad: false,
-    securityLevel: 'loose',
+    // Untrusted documents: 'strict' (mermaid's own default) sanitizes the rendered
+    // SVG and disables click bindings / embedded HTML & script in diagrams. mallow
+    // only renders diagrams for viewing — it uses no interactive `click` directives —
+    // so tightening this from 'loose' drops nothing we rely on. Do NOT switch to
+    // 'sandbox': that renders each diagram inside an <iframe>, which would break the
+    // inline-SVG theme re-render and the PNG/SVG copy controls in lib/mermaid-copy.ts.
+    securityLevel: 'strict',
     theme: theme === 'dark' ? 'dark' : 'default',
     flowchart: { useMaxWidth: true },
     themeVariables: { fontSize: '14px' },
