@@ -1,0 +1,7 @@
+# pnpm settings live here, not in package.json's "pnpm" field, which pnpm 11+
+# no longer reads. Allow the build scripts of these dependencies to run so a
+# fresh `pnpm install` produces working binaries (esbuild) / native bindings
+# (@parcel/watcher); without this, pnpm 10/11 reports ERR_PNPM_IGNORED_BUILDS.
+onlyBuiltDependencies:
+  - esbuild
+  - '@parcel/watcher'
