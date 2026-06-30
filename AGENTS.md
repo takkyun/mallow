@@ -74,6 +74,19 @@ Tauri v2 (Rust) + Vite + React + TypeScript + SCSS. **No Tailwind.**
   enhancements (code-copy buttons, mermaid render, external-link interception) run
   in a `useEffect` keyed on `[result, mode]`. Toggling preview↔source remounts the
   article, so those enhancements must re-run — **keep `mode` in the deps.**
+- **Untrusted-Markdown boundary** (so `dangerouslySetInnerHTML` stays safe — see
+  README "Security"): markdown-it runs with `html: false`, so raw HTML in a
+  document is escaped to text, never live DOM. markdown-it's default `validateLink`
+  drops dangerous link schemes (`javascript:`, `vbscript:`, `file:`, non-image
+  `data:`). The `MarkdownView` click handler only forwards `http(s)` to the OS
+  browser, lets `#anchors` scroll, and makes every other scheme inert. mermaid uses
+  `securityLevel: 'strict'` (NOT `sandbox`, which would iframe the diagram and break
+  the SVG re-render / copy controls). A CSP in `tauri.conf.json` is the second layer:
+  no `'unsafe-inline'`/`'unsafe-eval'` in `script-src` (only `'self'` +
+  `'wasm-unsafe-eval'` for Shiki's WASM regex engine); `style-src` keeps
+  `'unsafe-inline'` because Shiki/mermaid emit inline `style` attributes. If you add
+  a dep that needs `eval`/`new Function` or fetches remote assets, the CSP must be
+  revisited.
 - Theme = `data-theme` attribute + CSS-variable palettes (instant switch; also
   styles the non-React rendered HTML). 7 themes. When adding a dark palette, also
   add it to the `on-dark` mixin in `_vars.scss` and apply it in `global.scss`.

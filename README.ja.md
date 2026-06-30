@@ -35,6 +35,23 @@
 - markdown-it + @shikijs/markdown-it + mermaid + markdown-it-emoji / -github-alerts / -anchor
 - 設定パース: yaml / smol-toml / jsonc-parser / json5
 
+## セキュリティ
+
+mallow は**未信頼の** Markdown を安全に開くことを前提にしており、レンダリングには
+明確な境界があります。
+
+- **raw HTML を描画しない。** markdown-it を `html: false` で動かすため、文書中の
+  `<script>` や `<img onerror=…>` はテキストとして表示され、実行されません。
+  markdown-it が危険とみなす scheme（`javascript:` / `vbscript:` / `file:` /
+  画像以外の `data:`）はリンクから除去されます。開くのは `http(s)` リンクのみ
+  （OS ブラウザ）で、ページ内 `#anchor` はスクロール、それ以外の scheme は不活性です。
+- **mermaid** は `securityLevel: 'strict'` で動作します（SVG をサニタイズし、図中の
+  クリックバインドや埋め込みスクリプトを無効化）。
+- **Content Security Policy**（`tauri.conf.json`）が第二層です。スクリプトはバンドル
+  済みアプリコードに限定され（`'self'` と Shiki のハイライタ用 `'wasm-unsafe-eval'`）、
+  `script-src` に `'unsafe-inline'` を許可しないため、仮に DOM に注入された inline
+  スクリプトやイベントハンドラがあっても実行されません。
+
 ## 開発
 
 ```sh
