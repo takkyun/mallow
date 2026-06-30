@@ -12,10 +12,12 @@ standalone, lightweight desktop Markdown / config-file viewer. See
 pnpm install
 pnpm tauri dev      # run the app with hot reload
 pnpm build          # frontend type-check (tsc) + bundle (vite) — validate FE changes
+pnpm test           # frontend unit tests (Vitest, run once); pnpm test:watch to watch
 pnpm tauri build    # release build + bundle
 pnpm tauri icon src-tauri/icons/app-icon.png   # regenerate all app icons
 pnpm notices        # regenerate THIRD-PARTY-NOTICES.md (bundled dep licenses)
 cargo check         # run inside src-tauri/ to validate Rust
+cargo test          # run inside src-tauri/ to run the Rust unit tests
 ```
 
 ## Stack
@@ -74,6 +76,19 @@ Tauri v2 (Rust) + Vite + React + TypeScript + SCSS. **No Tailwind.**
   enhancements (code-copy buttons, mermaid render, external-link interception) run
   in a `useEffect` keyed on `[result, mode]`. Toggling preview↔source remounts the
   article, so those enhancements must re-run — **keep `mode` in the deps.**
+- **Untrusted-Markdown boundary** (so `dangerouslySetInnerHTML` stays safe — see
+  README "Security"): markdown-it runs with `html: false`, so raw HTML in a
+  document is escaped to text, never live DOM. markdown-it's default `validateLink`
+  drops dangerous link schemes (`javascript:`, `vbscript:`, `file:`, non-image
+  `data:`). The `MarkdownView` click handler only forwards `http(s)` to the OS
+  browser, lets `#anchors` scroll, and makes every other scheme inert. mermaid uses
+  `securityLevel: 'strict'` (NOT `sandbox`, which would iframe the diagram and break
+  the SVG re-render / copy controls). A CSP in `tauri.conf.json` is the second layer:
+  no `'unsafe-inline'`/`'unsafe-eval'` in `script-src` (only `'self'` +
+  `'wasm-unsafe-eval'` for Shiki's WASM regex engine); `style-src` keeps
+  `'unsafe-inline'` because Shiki/mermaid emit inline `style` attributes. If you add
+  a dep that needs `eval`/`new Function` or fetches remote assets, the CSP must be
+  revisited.
 - Theme = `data-theme` attribute + CSS-variable palettes (instant switch; also
   styles the non-React rendered HTML). 7 themes. When adding a dark palette, also
   add it to the `on-dark` mixin in `_vars.scss` and apply it in `global.scss`.
@@ -96,10 +111,12 @@ Tauri v2 (Rust) + Vite + React + TypeScript + SCSS. **No Tailwind.**
 
 ## Verifying changes
 
-- Frontend: `pnpm build` (tsc + vite). For pure-logic modules (e.g.
-  `markdown`, `config-parse`, `frontmatter`), a quick `pnpm dlx tsx <script>`
-  importing from `src/lib/*` is a fast non-GUI check.
-- Backend: `cargo check` inside `src-tauri/`.
+- Frontend: `pnpm build` (tsc + vite) and `pnpm test` (Vitest). Unit tests live
+  next to the code as `src/**/*.test.ts` and cover the pure-logic modules
+  (`markdown` — incl. the untrusted-input security boundary — `config-parse`,
+  `frontmatter`, `title`). Run a Node environment, so no jsdom/GUI is needed.
+- Backend: `cargo check` and `cargo test` inside `src-tauri/`. The `commands`
+  module has unit tests (a small self-cleaning temp-dir helper, no `tempfile` dep).
 - End-to-end: `pnpm tauri dev` (GUI) or `pnpm tauri build`.
 
 ## Known follow-ups

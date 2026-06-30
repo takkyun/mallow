@@ -51,7 +51,16 @@ async function getMd(): Promise<MarkdownIt> {
   if (!mdPromise) {
     mdPromise = (async () => {
       const highlighter = await getHighlighter();
-      const md = new MarkdownIt({ html: true, linkify: true });
+      // Security boundary: mallow opens untrusted Markdown, so raw HTML embedded
+      // in a document is NOT rendered. `html: false` makes markdown-it escape any
+      // literal `<script>`, `<img onerror=...>`, etc. into visible text instead of
+      // live DOM. markdown-it's default `validateLink` additionally drops dangerous
+      // link hrefs (javascript:, vbscript:, file:, and data: other than images), so
+      // `[x](javascript:alert(1))` is not turned into a link at all. HTML that mallow itself
+      // generates (Shiki code blocks, GitHub alerts, the mermaid fence rewrite below,
+      // and the front-matter table) is emitted by the renderer regardless of this
+      // flag — `html` only governs raw HTML *in the source* — so none of it breaks.
+      const md = new MarkdownIt({ html: false, linkify: true });
 
       md.use(
         fromHighlighter(highlighter, {

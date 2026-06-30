@@ -12,10 +12,12 @@
 pnpm install
 pnpm tauri dev      # ホットリロード付きで起動
 pnpm build          # フロントの型チェック(tsc) + バンドル(vite)。FE 変更の検証用
+pnpm test           # フロントのユニットテスト(Vitest, 単発実行)。watch は pnpm test:watch
 pnpm tauri build    # リリースビルド + バンドル
 pnpm tauri icon src-tauri/icons/app-icon.png   # 全アプリアイコンの再生成
 pnpm notices        # THIRD-PARTY-NOTICES.md を再生成（同梱する依存ライセンス）
 cargo check         # src-tauri/ 内で実行し Rust を検証
+cargo test          # src-tauri/ 内で実行し Rust のユニットテストを走らせる
 ```
 
 ## スタック
@@ -74,6 +76,18 @@ Tauri v2 (Rust) + Vite + React + TypeScript + SCSS。**Tailwind は不使用。*
   mermaid 描画、外部リンク横取り）は `[result, mode]` 依存の `useEffect` で実行する。
   プレビュー↔ソース切替で article が再マウントされるため、強化処理を再実行する必要が
   ある。**`mode` を依存配列に残すこと。**
+- **未信頼 Markdown の境界**（`dangerouslySetInnerHTML` を安全に保つための前提。README
+  の "Security" 参照）: markdown-it は `html: false` で動かすため、文書中の raw HTML は
+  テキストにエスケープされ、生きた DOM にはならない。markdown-it 既定の `validateLink`
+  が危険な scheme（`javascript:` / `vbscript:` / `file:` / 画像以外の `data:`）を除去する。
+  `MarkdownView` のクリックハンドラは `http(s)` のみ OS ブラウザへ転送し、`#anchor` は
+  スクロール、それ以外の scheme は不活性にする。mermaid は `securityLevel: 'strict'`
+  （`sandbox` は iframe 化で SVG 再描画 / コピー機能が壊れるため不可）。`tauri.conf.json`
+  の CSP が第二層: `script-src` に `'unsafe-inline'` / `'unsafe-eval'` を入れない（`'self'`
+  と Shiki の WASM 正規表現エンジン用の `'wasm-unsafe-eval'` のみ）。`style-src` は Shiki /
+  mermaid が inline `style` 属性を出力するため `'unsafe-inline'` を維持する。`eval` /
+  `new Function` を要する、またはリモート資産を取得する依存を追加する場合は CSP の見直しが
+  必要。
 - テーマ = `data-theme` 属性 + CSS 変数パレット（瞬時切替・非 React の描画 HTML にも適用）。
   7 種類。ダークパレットを追加する際は `_vars.scss` の `on-dark` mixin と `global.scss`
   の適用にも追加すること。
@@ -96,10 +110,12 @@ Tauri v2 (Rust) + Vite + React + TypeScript + SCSS。**Tailwind は不使用。*
 
 ## 変更の検証
 
-- フロント: `pnpm build`（tsc + vite）。純ロジックのモジュール（`markdown`・
-  `config-parse`・`frontmatter` など）は `pnpm dlx tsx <script>` で `src/lib/*` を
-  import して回す GUI 不要チェックが速い。
-- バックエンド: `src-tauri/` 内で `cargo check`。
+- フロント: `pnpm build`（tsc + vite）と `pnpm test`（Vitest）。ユニットテストは
+  コードと同じ場所に `src/**/*.test.ts` として置き、純ロジックのモジュール（`markdown`
+  ＝未信頼入力のセキュリティ境界含む・`config-parse`・`frontmatter`・`title`）を
+  カバーする。Node 環境で走るため jsdom/GUI は不要。
+- バックエンド: `src-tauri/` 内で `cargo check` と `cargo test`。`commands` モジュールに
+  ユニットテストがある（`tempfile` 依存を避けた自己クリーンアップ式の temp-dir ヘルパー）。
 - エンドツーエンド: `pnpm tauri dev`（GUI）または `pnpm tauri build`。
 
 ## 既知の未対応

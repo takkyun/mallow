@@ -70,9 +70,17 @@ export function MarkdownView({ source }: { source: string }) {
 
     const onClick = (e: MouseEvent) => {
       const anchor = (e.target as HTMLElement).closest('a');
-      const href = anchor?.getAttribute('href') ?? '';
+      if (!anchor) return;
+      const href = anchor.getAttribute('href') ?? '';
+      // In-page anchors (e.g. `[jump](#section)`) scroll within the document.
+      if (href.startsWith('#')) return;
+      // Anything else must never navigate the app's own WebView away. Real web
+      // links open in the OS browser; every other scheme (relative paths, file:,
+      // data:, mailto:, and — as defense in depth — javascript:) is treated as
+      // inert. markdown-it already strips dangerous link schemes (see lib/markdown.ts),
+      // so this is a second layer rather than the only guard.
+      e.preventDefault();
       if (/^https?:\/\//i.test(href)) {
-        e.preventDefault();
         void openUrl(href).catch((err) => console.error('openUrl failed', err));
       }
     };

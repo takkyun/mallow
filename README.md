@@ -35,6 +35,23 @@ tree, and view Markdown with GitHub-equivalent rendering or config files
 - markdown-it + @shikijs/markdown-it + mermaid + markdown-it-emoji / -github-alerts / -anchor
 - Config parsing: yaml / smol-toml / jsonc-parser / json5
 
+## Security
+
+mallow is meant to open **untrusted** Markdown safely, so rendering has a clear
+boundary:
+
+- **No raw HTML.** markdown-it runs with `html: false`, so a literal `<script>`
+  or `<img onerror=…>` in a document is shown as text, never executed. URL schemes
+  markdown-it deems dangerous (`javascript:`, `vbscript:`, `file:`, non-image
+  `data:`) are dropped from links. Only `http(s)` links open (in the OS browser);
+  in-page `#anchors` scroll, and any other scheme is inert.
+- **mermaid** runs with `securityLevel: 'strict'` — sanitized SVG, no click
+  bindings or embedded script in diagrams.
+- **Content Security Policy** (in `tauri.conf.json`) is the second layer: scripts
+  are limited to the bundled app code (`'self'` plus `'wasm-unsafe-eval'` for the
+  Shiki highlighter). `'unsafe-inline'` is not allowed in `script-src`, so injected
+  inline scripts and event handlers cannot run even if they reached the DOM.
+
 ## Development
 
 ```sh
@@ -42,6 +59,8 @@ pnpm install
 pnpm tauri dev      # run in dev (hot reload)
 pnpm tauri build    # release build (produces .app / .dmg, etc.)
 pnpm build          # frontend type-check + bundle only
+pnpm test           # frontend unit tests (Vitest)
+cargo test          # Rust unit tests (run inside src-tauri/)
 
 # Regenerate the app icons from the master image
 pnpm tauri icon src-tauri/icons/app-icon.png
