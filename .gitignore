@@ -26,5 +26,8 @@ dist-ssr
 # Local-only scratch space
 _sandbox/
 
+# Local-only macOS signing credentials (copy .env.signing.example to create it)
+.env.signing
+
 # Claude Code local settings
 .claude/settings.local.json
