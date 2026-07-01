@@ -199,26 +199,28 @@ export function ListTreeIcon({ size = 16 }: IconProps) {
   );
 }
 
-/** lucide: maximize-2 (expand all) */
-export function Maximize2Icon({ size = 16 }: IconProps) {
+/** lucide: list-chevrons-up-down (expand all) */
+export function ListChevronsUpDownIcon({ size = 16 }: IconProps) {
   return (
     <Icon size={size}>
-      <path d="M15 3h6v6" />
-      <path d="m21 3-7 7" />
-      <path d="m3 21 7-7" />
-      <path d="M9 21H3v-6" />
+      <path d="M3 5h8" />
+      <path d="M3 12h8" />
+      <path d="M3 19h8" />
+      <path d="m15 8 3-3 3 3" />
+      <path d="m15 16 3 3 3-3" />
     </Icon>
   );
 }
 
-/** lucide: minimize-2 (collapse all) */
-export function Minimize2Icon({ size = 16 }: IconProps) {
+/** lucide: list-chevrons-down-up (collapse all) */
+export function ListChevronsDownUpIcon({ size = 16 }: IconProps) {
   return (
     <Icon size={size}>
-      <path d="m14 10 7-7" />
-      <path d="M20 10h-6V4" />
-      <path d="m3 21 7-7" />
-      <path d="M4 14h6v6" />
+      <path d="M3 5h8" />
+      <path d="M3 12h8" />
+      <path d="M3 19h8" />
+      <path d="m15 5 3 3 3-3" />
+      <path d="m15 19 3-3 3 3" />
     </Icon>
   );
 }
