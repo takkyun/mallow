@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { configFormat, parseConfig, shikiLangFor, type ParseErrorInfo } from '../lib/config-parse';
 import { useI18n, type TFn } from '../lib/i18n';
 import type { FileEntry } from '../lib/types';
-import { CodeIcon, ListTreeIcon, Maximize2Icon, Minimize2Icon } from './icons';
+import { CodeIcon, ListChevronsDownUpIcon, ListChevronsUpDownIcon, ListTreeIcon } from './icons';
 import { ConfigTree } from './ConfigTree';
 import { SourceView } from './SourceView';
 
@@ -36,7 +36,7 @@ export function ConfigView({ source, file }: ConfigViewProps) {
           {outcome.ok && mode === 'tree' && (
             <div className="cfg-expand" role="group" aria-label={t('expandControls')}>
               <button type="button" className="icon-btn" title={t('expandAll')} aria-label={t('expandAll')} onClick={expandAll}>
-                <Maximize2Icon />
+                <ListChevronsUpDownIcon />
               </button>
               <button
                 type="button"
@@ -45,7 +45,7 @@ export function ConfigView({ source, file }: ConfigViewProps) {
                 aria-label={t('collapseAll')}
                 onClick={collapseAll}
               >
-                <Minimize2Icon />
+                <ListChevronsDownUpIcon />
               </button>
             </div>
           )}
