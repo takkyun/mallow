@@ -14,6 +14,7 @@ pnpm tauri dev      # run the app with hot reload
 pnpm build          # frontend type-check (tsc) + bundle (vite) — validate FE changes
 pnpm test           # frontend unit tests (Vitest, run once); pnpm test:watch to watch
 pnpm tauri build    # release build + bundle
+./scripts/macos-sign-build.sh   # signed + notarized macOS build (needs .env.signing)
 pnpm tauri icon src-tauri/icons/app-icon.png   # regenerate all app icons
 pnpm notices        # regenerate THIRD-PARTY-NOTICES.md (bundled dep licenses)
 cargo check         # run inside src-tauri/ to validate Rust
@@ -119,8 +120,42 @@ Tauri v2 (Rust) + Vite + React + TypeScript + SCSS. **No Tailwind.**
   module has unit tests (a small self-cleaning temp-dir helper, no `tempfile` dep).
 - End-to-end: `pnpm tauri dev` (GUI) or `pnpm tauri build`.
 
+## Releasing (macOS signing)
+
+To ship a macOS build that launches without a Gatekeeper warning it must be
+signed with a **Developer ID Application** certificate and **notarized** by
+Apple (for distribution outside the App Store). Tauri does both automatically
+when the right environment variables are present:
+
+1. **Prerequisites** — Xcode Command Line Tools (`xcode-select --install`) and a
+   "Developer ID Application" cert + private key in your login keychain (check
+   with `security find-identity -v -p codesigning`). An "Apple Development" or
+   "Apple Distribution" cert will *not* notarize. Notarization also needs an
+   app-specific password (appleid.apple.com → Sign-In and Security).
+2. **Configure** — copy `.env.signing.example` to `.env.signing` (git-ignored)
+   and fill in `APPLE_SIGNING_IDENTITY`, `APPLE_ID`, `APPLE_PASSWORD`,
+   `APPLE_TEAM_ID`. Credentials stay local; nothing account-specific is
+   committed.
+3. **Build** — `./scripts/macos-sign-build.sh` (wraps `pnpm tauri build`). Tauri
+   signs with hardened runtime (`bundle.macOS.hardenedRuntime` defaults to
+   `true`), notarizes, and staples the ticket. First notarization can take a few
+   minutes. **Tauri notarizes the `.app` but not the `.dmg` that wraps it** (an
+   un-notarized DMG is rejected by Gatekeeper on open), so the script notarizes +
+   staples each produced `.dmg` afterwards.
+4. **Verify** — the built `.app` / `.dmg` under
+   `src-tauri/target/release/bundle/`:
+   - `codesign -dv --verbose=4 <app>` → `Authority=Developer ID Application`,
+     `flags=…(runtime)`.
+   - `spctl -a -vvv -t install <app>` → `source=Notarized Developer ID`.
+   - `spctl -a -t open --context context:primary-signature -vvv <dmg>` →
+     `accepted / source=Notarized Developer ID` (this is what checks the DMG).
+   - `xcrun stapler validate <app-or-dmg>` → `The validate action worked!`.
+
+No custom entitlements file is needed for the default build; if a notarized
+build ever fails to launch under hardened runtime, add one via
+`bundle.macOS.entitlements`.
+
 ## Known follow-ups
 
 - Config-tree expansion state is not preserved across a live reload.
-- The build is unsigned (macOS Gatekeeper warning on first launch).
 - Math (KaTeX) is intentionally not implemented.

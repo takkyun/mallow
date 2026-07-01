@@ -14,6 +14,7 @@ pnpm tauri dev      # ホットリロード付きで起動
 pnpm build          # フロントの型チェック(tsc) + バンドル(vite)。FE 変更の検証用
 pnpm test           # フロントのユニットテスト(Vitest, 単発実行)。watch は pnpm test:watch
 pnpm tauri build    # リリースビルド + バンドル
+./scripts/macos-sign-build.sh   # 署名 + 公証済みの macOS ビルド（.env.signing が必要）
 pnpm tauri icon src-tauri/icons/app-icon.png   # 全アプリアイコンの再生成
 pnpm notices        # THIRD-PARTY-NOTICES.md を再生成（同梱する依存ライセンス）
 cargo check         # src-tauri/ 内で実行し Rust を検証
@@ -118,8 +119,37 @@ Tauri v2 (Rust) + Vite + React + TypeScript + SCSS。**Tailwind は不使用。*
   ユニットテストがある（`tempfile` 依存を避けた自己クリーンアップ式の temp-dir ヘルパー）。
 - エンドツーエンド: `pnpm tauri dev`（GUI）または `pnpm tauri build`。
 
+## リリース（macOS 署名）
+
+macOS ビルドを Gatekeeper 警告なしで起動させるには、**Developer ID Application**
+証明書で署名し、Apple による**公証 (notarization)** を受ける必要がある（App Store
+外配布の場合）。適切な環境変数が揃っていれば Tauri が両方を自動で行う:
+
+1. **前提** — Xcode Command Line Tools（`xcode-select --install`）と、login
+   keychain 内の「Developer ID Application」証明書＋秘密鍵（`security find-identity
+   -v -p codesigning` で確認）。「Apple Development」/「Apple Distribution」証明書
+   では公証できない。公証には app-specific password も必要（appleid.apple.com →
+   サインインとセキュリティ）。
+2. **設定** — `.env.signing.example` を `.env.signing`（git 無視）へコピーし、
+   `APPLE_SIGNING_IDENTITY` / `APPLE_ID` / `APPLE_PASSWORD` / `APPLE_TEAM_ID` を
+   記入する。資格情報はローカルに留まり、アカウント固有の値はコミットしない。
+3. **ビルド** — `./scripts/macos-sign-build.sh`（`pnpm tauri build` のラッパ）。
+   Tauri が hardened runtime（`bundle.macOS.hardenedRuntime` は既定 `true`）で署名し、
+   公証してチケットを staple する。初回の公証は数分かかることがある。**Tauri は
+   `.app` は公証するが、それを包む `.dmg` は公証しない**（未公証の DMG は開いた時点で
+   Gatekeeper に弾かれる）ため、スクリプトが生成後の各 `.dmg` を公証 + staple する。
+4. **検証** — `src-tauri/target/release/bundle/` 配下の `.app` / `.dmg`:
+   - `codesign -dv --verbose=4 <app>` → `Authority=Developer ID Application`、
+     `flags=…(runtime)`。
+   - `spctl -a -vvv -t install <app>` → `source=Notarized Developer ID`。
+   - `spctl -a -t open --context context:primary-signature -vvv <dmg>` →
+     `accepted / source=Notarized Developer ID`（DMG 側の判定はこれで確認）。
+   - `xcrun stapler validate <app-or-dmg>` → `The validate action worked!`。
+
+既定ビルドでは独自の entitlements ファイルは不要。もし公証済みビルドが hardened
+runtime 下で起動に失敗する場合は `bundle.macOS.entitlements` で追加する。
+
 ## 既知の未対応
 
 - 設定ツリーの展開状態はライブ更新で保持されない。
-- ビルドは未署名（macOS の初回起動で Gatekeeper 警告）。
 - 数式 (KaTeX) は意図的に未実装。
