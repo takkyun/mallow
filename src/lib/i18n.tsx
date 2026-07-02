@@ -61,6 +61,7 @@ const ja: Dict = {
   locLine: '（{line} 行）',
   items: '{n} 個',
   keys: '{n} キー',
+  showMore: 'さらに表示（残り {n} 件）',
   // settings modal
   explorerPosition: 'エクスプローラの位置',
   left: '左',
@@ -111,6 +112,7 @@ const en: Dict = {
   locLine: ' (line {line})',
   items: '{n} items',
   keys: '{n} keys',
+  showMore: 'Show more ({n} remaining)',
   // settings modal
   explorerPosition: 'Explorer position',
   left: 'Left',

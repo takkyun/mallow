@@ -87,6 +87,13 @@ button.cfg-row {
   color: $faint;
 }
 
+// "Show more" control for branches whose children exceed the initial cap.
+.cfg-more-label {
+  color: var(--color-link);
+  font-size: 11px;
+  font-style: italic;
+}
+
 // Primitive value colors (roughly GitHub-light token hues; readable in dark too).
 .cfg-value--string {
   color: var(--color-success);

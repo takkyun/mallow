@@ -1,5 +1,6 @@
 import { useState, type CSSProperties } from 'react';
 import { useT } from '../lib/i18n';
+import { BRANCH_INITIAL, initialBranchOpen, nextVisibleCount } from '../lib/config-tree';
 import { ChevronRight } from './icons';
 
 type ValueType = 'object' | 'array' | 'string' | 'number' | 'boolean' | 'null';
@@ -54,11 +55,16 @@ function ValueNode({ label, value, depth, forceOpen }: NodeProps) {
 
 function BranchNode({ label, value, type, depth, forceOpen }: NodeProps & { type: 'object' | 'array' }) {
   const t = useT();
-  const [open, setOpen] = useState(forceOpen ?? depth < 1);
+  const [open, setOpen] = useState(() => initialBranchOpen(forceOpen, depth));
+  // Cap how many children mount at once; "show more" reveals the rest in chunks.
+  // Reset on remount (expand/collapse all bumps the tree key), so "expand all"
+  // opens branches without ever bypassing this cap.
+  const [visibleCount, setVisibleCount] = useState(BRANCH_INITIAL);
   const entries = entriesOf(value, type);
   const open_b = type === 'array' ? '[' : '{';
   const close_b = type === 'array' ? ']' : '}';
   const summary = type === 'array' ? t('items', { n: entries.length }) : t('keys', { n: entries.length });
+  const hidden = entries.length - visibleCount;
 
   return (
     <div className="cfg-node">
@@ -83,7 +89,22 @@ function BranchNode({ label, value, type, depth, forceOpen }: NodeProps & { type
               {t('empty')}
             </div>
           ) : (
-            entries.map(([k, v]) => <ValueNode key={k} label={k} value={v} depth={depth + 1} forceOpen={forceOpen} />)
+            <>
+              {entries.slice(0, visibleCount).map(([k, v]) => (
+                <ValueNode key={k} label={k} value={v} depth={depth + 1} forceOpen={forceOpen} />
+              ))}
+              {hidden > 0 && (
+                <button
+                  type="button"
+                  className="cfg-row cfg-more"
+                  style={indent(depth + 1)}
+                  onClick={() => setVisibleCount((c) => nextVisibleCount(c, entries.length))}
+                >
+                  <span className="cfg-chevron is-leaf" aria-hidden="true" />
+                  <span className="cfg-more-label">{t('showMore', { n: hidden })}</span>
+                </button>
+              )}
+            </>
           )}
           <div className="cfg-row cfg-bracket-row" style={indent(depth)}>
             <span className="cfg-chevron is-leaf" aria-hidden="true" />
