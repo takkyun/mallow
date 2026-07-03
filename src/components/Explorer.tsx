@@ -1,5 +1,6 @@
 import type { FileTreeController } from '../hooks/useFileTree';
 import { useT } from '../lib/i18n';
+import { basename } from '../lib/path';
 import type { FileEntry } from '../lib/types';
 import { FileTree } from './FileTree';
 
@@ -13,7 +14,7 @@ interface ExplorerProps {
 export function Explorer({ tree, selectedPath, onSelect, onOpenFolder }: ExplorerProps) {
   const t = useT();
   const { rootDir, rootEntries, rootLoading, rootError } = tree;
-  const rootName = rootDir ? rootDir.split('/').filter(Boolean).pop() || rootDir : null;
+  const rootName = rootDir ? basename(rootDir) : null;
 
   // Roving keyboard navigation over the visible tree rows.
   function onKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {

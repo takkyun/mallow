@@ -6,8 +6,9 @@ import { SettingsModal } from './components/SettingsModal';
 import { Toolbar } from './components/Toolbar';
 import { Viewer } from './components/Viewer';
 import { useFileTree } from './hooks/useFileTree';
-import { ancestorDirs, fileEntryFromPath } from './lib/file';
+import { fileEntryFromPath } from './lib/file';
 import { useT } from './lib/i18n';
+import { ancestorDirs, isInside } from './lib/path';
 import { loadSettings, saveSetting } from './lib/settings';
 import { pathExists, pickFolder } from './lib/tauri';
 import type { FileEntry } from './lib/types';
@@ -64,7 +65,7 @@ export default function App() {
       if (s.lastFolder && (await pathExists(s.lastFolder))) {
         await openTree(s.lastFolder);
         startWatch(s.lastFolder).catch((e) => console.error('Failed to start watch', e));
-        if (s.lastFile && s.lastFile.startsWith(s.lastFolder) && (await pathExists(s.lastFile))) {
+        if (s.lastFile && isInside(s.lastFolder, s.lastFile) && (await pathExists(s.lastFile))) {
           await expandPaths(ancestorDirs(s.lastFolder, s.lastFile));
           if (!disposed) setSelected(fileEntryFromPath(s.lastFile));
         }
