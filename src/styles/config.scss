@@ -5,13 +5,13 @@
   max-width: 960px;
 }
 
-.doc.cfg .doc__bar {
-  justify-content: space-between;
-}
-
 .cfg-expand {
   display: flex;
   gap: 4px;
+  // Push the expand/collapse controls to the left so the view-mode toggle
+  // stays top-right (matching markdown, and in source mode where this group
+  // is absent the toggle still sits right rather than jumping left).
+  margin-right: auto;
 }
 
 // ---- Collapsible tree -------------------------------------------------------
