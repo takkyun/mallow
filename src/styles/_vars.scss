@@ -197,5 +197,13 @@ $font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberatio
 
 // ---- Layout -----------------------------------------------------------------
 $toolbar-height: 44px;
+// Document top spacing. `.doc` itself has no top padding — the sticky action
+// bar owns this as its `padding-top` so it renders as one continuous frosted
+// band, and it doubles as the gap below the toolbar once pinned.
+$doc-pad-top: 20px;
+// Bottom edge of the pinned in-document action bar (`.doc__bar`), measured from
+// the scrollport top: $doc-pad-top top padding + the ~30px view-mode toggle row
+// + 12px bottom padding. Used to offset the sticky outline so it clears the bar.
+$doc-bar-height: $doc-pad-top + 42px;
 $explorer-min-width: 180px;
 $explorer-max-width: 600px;
