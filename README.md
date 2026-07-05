@@ -4,7 +4,8 @@
 
 A lightweight Markdown / config-file viewer. Open a folder, pick a file from the
 tree, and view Markdown with GitHub-equivalent rendering or config files
-(JSON / YAML / TOML family) as a collapsible hierarchical tree.
+(JSON / YAML / TOML family) as a collapsible hierarchical tree. Images, PDFs, and
+videos are shown too, rendered by the OS-native WebView.
 
 ## Features
 
@@ -19,6 +20,10 @@ tree, and view Markdown with GitHub-equivalent rendering or config files
   - Collapsible tree (expand/collapse all, tree/source toggle)
   - On a syntax error, switches to the source view and highlights the offending line
 - **Standalone mermaid files** (.mmd / .mermaid)
+- **Images, PDFs, and videos** (png / jpg / jpeg / gif / webp / svg, pdf,
+  webm / mp4 / mov — plus heic/heif on macOS): rendered by the OS-native WebView
+  via the Tauri asset protocol, so support depends on what the platform's WebView
+  can decode (e.g. PDF is unavailable on some Linux WebKitGTK builds).
 - **Live reload**: edits to the open file are detected and re-rendered automatically
   (scroll position preserved); the tree follows changes too.
 - **Open in editor**: detects and launches VS Code / Zed / CotEditor / mi (macOS),
@@ -51,6 +56,11 @@ boundary:
   are limited to the bundled app code (`'self'` plus `'wasm-unsafe-eval'` for the
   Shiki highlighter). `'unsafe-inline'` is not allowed in `script-src`, so injected
   inline scripts and event handlers cannot run even if they reached the DOM.
+- **Local media** (images / PDFs / videos) is served over the Tauri asset
+  protocol, whose scope starts empty and is widened only to folders the user
+  opens. The CSP allows `asset:` URLs for `img`/`media`/`frame` sources, but a
+  document cannot inject one: `html: false` and markdown-it's link validation
+  block the `asset:` scheme, so media only loads for files chosen in the tree.
 
 ## Development
 
@@ -75,7 +85,7 @@ src/                Frontend (React + TS)
   hooks/useFileTree  Centralized file-tree state (lazy load, refresh, expansion)
   styles/           SCSS (_vars / global / app / markdown / config / source)
 src-tauri/          Rust backend
-  src/commands.rs   read_dir_tree / read_file / path_exists (std::fs)
+  src/commands.rs   read_dir_tree / read_file / path_exists / allow_media_dir (std::fs)
   src/watch.rs      Recursive file watching via notify (emits the fs:change event)
   src/editors.rs    Editor detection / launch / reveal in OS
   icons/app-icon.png  Icon master (input for regeneration)

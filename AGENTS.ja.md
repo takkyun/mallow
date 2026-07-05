@@ -34,8 +34,9 @@ Tauri v2 (Rust) + Vite + React + TypeScript + SCSS。**Tailwind は不使用。*
 - `hooks/useFileTree.ts` — ファイルツリーの集中管理（展開集合・子マップ・`refresh`・
   `expandPaths`）。ツリーコンポーネントはこれに制御される。
 - `components/` — Explorer/FileTree、Viewer（種別でルーティング）、MarkdownView、
-  ConfigView/ConfigTree、SourceView（共通・行番号付き）、MermaidView、Outline、
-  Toolbar、OpenWith、ThemePicker、SettingsModal、icons（Lucide の SVG をインライン化・
+  ConfigView/ConfigTree、SourceView（共通・行番号付き）、MermaidView、
+  MediaView（画像/PDF/動画を asset protocol 経由で表示）、Outline、Toolbar、
+  OpenWith、ThemePicker、SettingsModal、icons（Lucide の SVG をインライン化・
   ランタイム依存なし）。
 - `lib/` — `markdown`（markdown-it パイプライン）、`shiki`（ハイライタ singleton +
   `stripPreBackground`）、`mermaid` + `mermaid-copy` + `codeblock`（命令的 DOM 強化）、
@@ -46,8 +47,10 @@ Tauri v2 (Rust) + Vite + React + TypeScript + SCSS。**Tailwind は不使用。*
   `markdown`、`config`、`source`。
 
 **バックエンド (`src-tauri/src/`)**
-- `commands.rs` — `read_dir_tree` / `read_file` / `path_exists` を素の `std::fs` で実装
-  （fs プラグインは使わない）。ユーザーが選んだ任意フォルダをスコープ設定なしで扱える。
+- `commands.rs` — `read_dir_tree` / `read_file` / `path_exists` / `allow_media_dir`
+  を素の `std::fs` で実装（fs プラグインは使わない）。ユーザーが選んだ任意フォルダを
+  スコープ設定なしで扱える。`allow_media_dir` は開いたフォルダに asset protocol の
+  スコープを広げ、その中の画像/PDF/動画を `convertFileSrc` で表示できるようにする。
 - `watch.rs` — `notify` の再帰ウォッチャ。`fs:change` イベント（パス配列）を emit。
   ウォッチャは `WatcherState` が保持。
 - `editors.rs` — `detect_editors` / `open_in_editor` / `reveal_in_os` を `std::process`
@@ -89,6 +92,19 @@ Tauri v2 (Rust) + Vite + React + TypeScript + SCSS。**Tailwind は不使用。*
   mermaid が inline `style` 属性を出力するため `'unsafe-inline'` を維持する。`eval` /
   `new Function` を要する、またはリモート資産を取得する依存を追加する場合は CSP の見直しが
   必要。
+- **メディア（画像/PDF/動画）** は `MediaView` が Tauri の asset protocol
+  （`convertFileSrc` → `asset:` URL）でディスクから直接描画する。バイトは JS を通らない
+  ため、`read_file` の 10 MiB テキスト上限は適用されず、`Viewer` はメディア種別ではテキスト
+  読み込みをスキップする。asset protocol には `protocol-asset` cargo feature と
+  `tauri.conf.json` の `assetProtocol.enable` が必要。スコープは空から始まり、開いたフォルダ
+  ごとに `allow_media_dir`（`App.tsx` が開いた時とセッション復元時に呼ぶ）で広げる。CSP は
+  `img-src` / `media-src` / `frame-src` に `asset:` / `http://asset.localhost` を許可する
+  （frame は WebView 内蔵 PDF ビューア用）。これは未信頼 Markdown の境界を広げない:
+  `html: false` と `validateLink` が `asset:` scheme を弾くため、文書側から `asset:` 参照を
+  出すことはできず、メディアはツリーで選んだファイルのみ読み込まれる。対応可否はプラット
+  フォームの WebView に依存する（heic/heif は `file_kind` で macOS に限定。PDF は一部 Linux の
+  WebKitGTK では非対応）。`<img>` / `<video>` は復号失敗時にフォールバック文言を出す。
+  `<iframe>`（PDF）は信頼できるエラー信号がないため、空表示になることがある。
 - テーマ = `data-theme` 属性 + CSS 変数パレット（瞬時切替・非 React の描画 HTML にも適用）。
   7 種類。ダークパレットを追加する際は `_vars.scss` の `on-dark` mixin と `global.scss`
   の適用にも追加すること。
