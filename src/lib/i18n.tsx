@@ -44,6 +44,7 @@ const ja: Dict = {
   noFiles: '表示できるファイルがありません。',
   // viewer
   selectFile: 'ファイルを選択してください',
+  mediaUnsupported: 'このファイルはこのプラットフォームでは表示できません。',
   // markdown view
   outline: 'アウトライン',
   contents: '目次',
@@ -95,6 +96,7 @@ const en: Dict = {
   noFiles: 'No files to display.',
   // viewer
   selectFile: 'Select a file',
+  mediaUnsupported: 'This file cannot be displayed on this platform.',
   // markdown view
   outline: 'Outline',
   contents: 'Contents',

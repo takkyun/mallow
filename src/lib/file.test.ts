@@ -10,6 +10,18 @@ describe('kindFromName', () => {
     expect(kindFromName('Cargo.toml')).toBe('toml');
   });
 
+  it('maps media extensions', () => {
+    expect(kindFromName('photo.PNG')).toBe('image');
+    expect(kindFromName('pic.jpeg')).toBe('image');
+    expect(kindFromName('anim.gif')).toBe('image');
+    expect(kindFromName('logo.svg')).toBe('image');
+    expect(kindFromName('shot.heic')).toBe('image');
+    expect(kindFromName('paper.pdf')).toBe('pdf');
+    expect(kindFromName('clip.webm')).toBe('video');
+    expect(kindFromName('clip.mp4')).toBe('video');
+    expect(kindFromName('clip.mov')).toBe('video');
+  });
+
   it('defaults to markdown for anything else', () => {
     expect(kindFromName('notes.txt')).toBe('markdown');
     expect(kindFromName('Makefile')).toBe('markdown');

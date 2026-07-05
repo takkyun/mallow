@@ -75,6 +75,7 @@ pub fn run() {
             commands::read_dir_tree,
             commands::read_file,
             commands::path_exists,
+            commands::allow_media_dir,
             watch::start_watch,
             watch::stop_watch,
             editors::detect_editors,

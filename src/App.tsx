@@ -10,7 +10,7 @@ import { fileEntryFromPath } from './lib/file';
 import { useT } from './lib/i18n';
 import { ancestorDirs, isInside } from './lib/path';
 import { loadSettings, saveSetting } from './lib/settings';
-import { pathExists, pickFolder } from './lib/tauri';
+import { allowMediaDir, pathExists, pickFolder } from './lib/tauri';
 import type { FileEntry } from './lib/types';
 import { onFsChange, startWatch } from './lib/watch';
 
@@ -49,6 +49,9 @@ export default function App() {
     setSelected(null);
     void saveSetting('lastFolder', dir);
     void saveSetting('lastFile', undefined);
+    // Await the scope grant so a media file selected right after cannot build its
+    // asset URL before the asset protocol is allowed to serve it.
+    await allowMediaDir(dir).catch((e) => console.error('Failed to allow media dir', e));
     await openTree(dir);
     startWatch(dir).catch((e) => console.error('Failed to start watch', e));
   }, [openTree]);
@@ -63,6 +66,11 @@ export default function App() {
       if (s.explorerSide) setExplorerSide(s.explorerSide);
 
       if (s.lastFolder && (await pathExists(s.lastFolder))) {
+        // Await the scope grant before restoring the selection below, so a
+        // restored media file cannot build its asset URL and latch a load error
+        // before the asset protocol is allowed to serve it.
+        await allowMediaDir(s.lastFolder).catch((e) => console.error('Failed to allow media dir', e));
+        if (disposed) return;
         await openTree(s.lastFolder);
         startWatch(s.lastFolder).catch((e) => console.error('Failed to start watch', e));
         if (s.lastFile && isInside(s.lastFolder, s.lastFile) && (await pathExists(s.lastFile))) {

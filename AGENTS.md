@@ -34,9 +34,9 @@ Tauri v2 (Rust) + Vite + React + TypeScript + SCSS. **No Tailwind.**
 - `hooks/useFileTree.ts` — centralized lazy file-tree state (expanded set, children
   map, `refresh`, `expandPaths`). The tree components are controlled by this.
 - `components/` — Explorer/FileTree, Viewer (routes by file kind), MarkdownView,
-  ConfigView/ConfigTree, SourceView (shared, line-numbered), MermaidView, Outline,
-  Toolbar, OpenWith, ThemePicker, SettingsModal, icons (inlined Lucide SVGs, no
-  runtime dependency).
+  ConfigView/ConfigTree, SourceView (shared, line-numbered), MermaidView,
+  MediaView (image/pdf/video via the asset protocol), Outline, Toolbar, OpenWith,
+  ThemePicker, SettingsModal, icons (inlined Lucide SVGs, no runtime dependency).
 - `lib/` — `markdown` (markdown-it pipeline), `shiki` (highlighter singleton +
   `stripPreBackground`), `mermaid` + `mermaid-copy` + `codeblock` (imperative DOM
   enhancements), `frontmatter`, `config-parse`, `scroll` (anchor preservation),
@@ -46,8 +46,10 @@ Tauri v2 (Rust) + Vite + React + TypeScript + SCSS. **No Tailwind.**
   `markdown`, `config`, `source`.
 
 **Backend (`src-tauri/src/`)**
-- `commands.rs` — `read_dir_tree`, `read_file`, `path_exists` via plain `std::fs`
-  (NOT the fs plugin), so any user-picked folder works without scope config.
+- `commands.rs` — `read_dir_tree`, `read_file`, `path_exists`, `allow_media_dir`
+  via plain `std::fs` (NOT the fs plugin), so any user-picked folder works without
+  scope config. `allow_media_dir` widens the asset-protocol scope to an opened
+  folder so its image/pdf/video files can be rendered via `convertFileSrc`.
 - `watch.rs` — `notify` recursive watcher; emits the `fs:change` event (list of
   paths). The watcher handle lives in `WatcherState`.
 - `editors.rs` — `detect_editors` / `open_in_editor` / `reveal_in_os` via
@@ -90,6 +92,20 @@ Tauri v2 (Rust) + Vite + React + TypeScript + SCSS. **No Tailwind.**
   `'unsafe-inline'` because Shiki/mermaid emit inline `style` attributes. If you add
   a dep that needs `eval`/`new Function` or fetches remote assets, the CSP must be
   revisited.
+- **Media (image/pdf/video)** is rendered by `MediaView` straight from disk via
+  the Tauri asset protocol (`convertFileSrc` → `asset:` URL); no bytes pass through
+  JS, so the 10 MiB `read_file` text cap does not apply and `Viewer` skips the text
+  read for media kinds. The asset protocol needs the `protocol-asset` cargo feature
+  + `assetProtocol.enable` in `tauri.conf.json`; its scope starts empty and is
+  widened per opened folder by `allow_media_dir` (called from `App.tsx` on open and
+  on session restore). The CSP allows `asset:` / `http://asset.localhost` for
+  `img-src` / `media-src` / `frame-src` (frame for the WebView's native PDF viewer).
+  This does not widen the untrusted-Markdown boundary: `html: false` + markdown-it's
+  `validateLink` block the `asset:` scheme, so a document cannot emit an `asset:`
+  reference — media only loads for files chosen in the tree. Media support is bounded
+  by the platform WebView (heic/heif are gated to macOS in `file_kind`; PDF is absent
+  on some Linux WebKitGTK builds). `<img>`/`<video>` fall back to a message on decode
+  error; `<iframe>` (PDF) has no reliable error signal, so it can show blank.
 - Theme = `data-theme` attribute + CSS-variable palettes (instant switch; also
   styles the non-React rendered HTML). 7 themes. When adding a dark palette, also
   add it to the `on-dark` mixin in `_vars.scss` and apply it in `global.scss`.

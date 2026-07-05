@@ -26,6 +26,12 @@ export function pathExists(path: string): Promise<boolean> {
   return invoke<boolean>('path_exists', { path });
 }
 
+/** Grant the WebView asset protocol recursive read access to an opened folder,
+ *  so media files under it can be rendered via `convertFileSrc`. */
+export function allowMediaDir(path: string): Promise<void> {
+  return invoke('allow_media_dir', { path });
+}
+
 /** Prompt the user to pick a folder; returns its path or null if cancelled. */
 export async function pickFolder(): Promise<string | null> {
   const result = await openDialog({ directory: true, multiple: false });
