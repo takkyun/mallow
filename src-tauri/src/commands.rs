@@ -17,26 +17,41 @@ pub struct FileEntry {
     name: String,
     path: String,
     is_dir: bool,
-    /// One of: "directory" | "markdown" | "mermaid" | "json" | "yaml" | "toml".
+    /// One of: "directory" | "markdown" | "mermaid" | "json" | "yaml" | "toml"
+    /// | "image" | "pdf" | "video".
     kind: String,
 }
 
 /// Map a file name to a supported viewer category by extension, or `None` when
 /// the file type is not one we display (so it gets filtered out of the tree).
+///
+/// Media kinds ("image" / "pdf" / "video") are rendered by the WebView directly
+/// from the file (via the asset protocol), so support is bounded by what the
+/// platform's WebView can decode. `heic`/`heif` only decode on macOS (WKWebView),
+/// so they are gated behind `cfg`; other media formats are advertised on every
+/// platform and fall back gracefully when the WebView cannot render them.
 fn file_kind(name: &str) -> Option<String> {
     let ext = name.rsplit('.').next()?;
     // No extension at all (rsplit yields the whole name when there is no dot).
     if !name.contains('.') {
         return None;
     }
-    match ext.to_ascii_lowercase().as_str() {
-        "md" | "markdown" => Some("markdown".into()),
-        "mmd" | "mermaid" => Some("mermaid".into()),
-        "json" | "jsonc" | "json5" | "jsonl" | "ndjson" => Some("json".into()),
-        "yaml" | "yml" => Some("yaml".into()),
-        "toml" => Some("toml".into()),
-        _ => None,
-    }
+    Some(
+        match ext.to_ascii_lowercase().as_str() {
+            "md" | "markdown" => "markdown",
+            "mmd" | "mermaid" => "mermaid",
+            "json" | "jsonc" | "json5" | "jsonl" | "ndjson" => "json",
+            "yaml" | "yml" => "yaml",
+            "toml" => "toml",
+            "png" | "jpg" | "jpeg" | "gif" | "webp" | "svg" => "image",
+            // HEIC/HEIF only decode in WKWebView (macOS).
+            "heic" | "heif" if cfg!(target_os = "macos") => "image",
+            "pdf" => "pdf",
+            "webm" | "mp4" | "mov" => "video",
+            _ => return None,
+        }
+        .into(),
+    )
 }
 
 /// List the immediate children of `path`. Directories are always included;
@@ -84,6 +99,18 @@ pub fn read_file(path: String) -> Result<String, String> {
 #[tauri::command]
 pub fn path_exists(path: String) -> bool {
     Path::new(&path).exists()
+}
+
+/// Grant the WebView asset protocol read access to an opened folder (recursively)
+/// so media files under it can be rendered via `convertFileSrc`. The asset scope
+/// starts empty and is widened here as the user opens folders, keeping it scoped
+/// to what is actually being browsed rather than the whole filesystem.
+#[tauri::command]
+pub fn allow_media_dir(app: tauri::AppHandle, path: String) -> Result<(), String> {
+    use tauri::Manager;
+    app.asset_protocol_scope()
+        .allow_directory(&path, true)
+        .map_err(|e| e.to_string())
 }
 
 #[cfg(test)]
@@ -137,8 +164,23 @@ mod tests {
     }
 
     #[test]
+    fn file_kind_maps_media_extensions() {
+        assert_eq!(file_kind("photo.png").as_deref(), Some("image"));
+        assert_eq!(file_kind("photo.JPG").as_deref(), Some("image"));
+        assert_eq!(file_kind("anim.gif").as_deref(), Some("image"));
+        assert_eq!(file_kind("logo.webp").as_deref(), Some("image"));
+        assert_eq!(file_kind("logo.svg").as_deref(), Some("image"));
+        assert_eq!(file_kind("doc.pdf").as_deref(), Some("pdf"));
+        assert_eq!(file_kind("clip.webm").as_deref(), Some("video"));
+        assert_eq!(file_kind("clip.mp4").as_deref(), Some("video"));
+        assert_eq!(file_kind("clip.mov").as_deref(), Some("video"));
+        // HEIC is only advertised on macOS (WKWebView decodes it).
+        assert_eq!(file_kind("photo.heic").as_deref(), if cfg!(target_os = "macos") { Some("image") } else { None });
+    }
+
+    #[test]
     fn file_kind_rejects_unsupported_and_extensionless() {
-        assert_eq!(file_kind("photo.png"), None);
+        assert_eq!(file_kind("archive.zip"), None);
         assert_eq!(file_kind("Makefile"), None);
         assert_eq!(file_kind(".gitignore"), None);
     }
@@ -150,7 +192,7 @@ mod tests {
         fs::create_dir(tmp.path().join("Asub")).unwrap();
         fs::write(tmp.path().join("b.md"), "x").unwrap();
         fs::write(tmp.path().join("a.json"), "{}").unwrap();
-        fs::write(tmp.path().join("skip.png"), "x").unwrap(); // unsupported
+        fs::write(tmp.path().join("skip.zip"), "x").unwrap(); // unsupported
         fs::write(tmp.path().join("noext"), "x").unwrap(); // no extension
 
         let entries = read_dir_tree(tmp.path().to_string_lossy().to_string()).unwrap();
