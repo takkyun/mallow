@@ -539,7 +539,7 @@ $outline-breakpoint: 1024px;
   }
 }
 
-@media (max-width: $outline-breakpoint - 1px) {
+@media (max-width: #{$outline-breakpoint - 1px}) {
   .doc__body {
     grid-template-columns: minmax(0, 1fr);
     grid-template-areas:
