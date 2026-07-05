@@ -5,12 +5,18 @@ import { documentTitle, windowTitle } from '../lib/title';
 import type { FileEntry } from '../lib/types';
 import { ConfigView } from './ConfigView';
 import { MarkdownView } from './MarkdownView';
+import { MediaView } from './MediaView';
 import { MermaidView } from './MermaidView';
 
 interface ViewerProps {
   file: FileEntry | null;
   /** Bumped by the watcher when the open file changes on disk, forcing a re-read. */
   reloadToken: number;
+}
+
+/** Kinds rendered by the WebView from the file itself, not by reading its text. */
+function isMediaKind(kind: FileEntry['kind']): boolean {
+  return kind === 'image' || kind === 'pdf' || kind === 'video';
 }
 
 export function Viewer({ file, reloadToken }: ViewerProps) {
@@ -24,6 +30,15 @@ export function Viewer({ file, reloadToken }: ViewerProps) {
       setContent(null);
       setError(null);
       setWindowTitle(windowTitle(null));
+      return;
+    }
+    // Media files are rendered by the WebView from the asset URL; skip the text
+    // read entirely (they are binary and may exceed the text-read size cap).
+    if (isMediaKind(file.kind)) {
+      setContent(null);
+      setError(null);
+      setLoading(false);
+      setWindowTitle(windowTitle(file.name));
       return;
     }
     let cancelled = false;
@@ -56,6 +71,14 @@ export function Viewer({ file, reloadToken }: ViewerProps) {
     return (
       <main className="viewer viewer--empty">
         <p>{t('selectFile')}</p>
+      </main>
+    );
+  }
+
+  if (isMediaKind(file.kind)) {
+    return (
+      <main className="viewer">
+        <MediaView key={file.path} file={file} reloadToken={reloadToken} />
       </main>
     );
   }

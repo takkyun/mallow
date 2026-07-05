@@ -23,6 +23,23 @@ export function kindFromName(name: string): FileKind {
       return 'yaml';
     case 'toml':
       return 'toml';
+    case 'png':
+    case 'jpg':
+    case 'jpeg':
+    case 'gif':
+    case 'webp':
+    case 'svg':
+    // heic/heif only render on macOS; the backend gates them out of the tree on
+    // other platforms, so the frontend can map them unconditionally.
+    case 'heic':
+    case 'heif':
+      return 'image';
+    case 'pdf':
+      return 'pdf';
+    case 'webm':
+    case 'mp4':
+    case 'mov':
+      return 'video';
     default:
       return 'markdown';
   }
