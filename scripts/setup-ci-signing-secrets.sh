@@ -1,9 +1,15 @@
 #!/usr/bin/env sh
 # Register the GitHub Actions secrets that .github/workflows/release.yml needs
-# to sign + notarize macOS builds in CI. Apple account values are read from
-# .env.signing (the same file the local build uses) and the certificate from a
-# password-protected .p12 you export from Keychain Access. No secret value is
-# printed — each is piped straight into `gh secret set`.
+# to sign + notarize macOS builds in CI. The Apple account values (APPLE_ID /
+# APPLE_PASSWORD / APPLE_TEAM_ID) are read from .env.signing; the certificate
+# comes from a password-protected .p12 you export from Keychain Access, and
+# APPLE_SIGNING_IDENTITY is derived from that .p12's certificate common name.
+#
+# Deriving the identity from the .p12 (rather than copying .env.signing's
+# APPLE_SIGNING_IDENTITY) is deliberate: local signing accepts a SHA-1 hash as
+# the identity, but tauri-action in CI string-matches the imported certificate's
+# common name against APPLE_SIGNING_IDENTITY — a hash there fails the build.
+# No secret value is printed — each is piped straight into `gh secret set`.
 #
 # Usage:
 #   ./scripts/setup-ci-signing-secrets.sh path/to/DeveloperID.p12
@@ -30,8 +36,8 @@ fi
   exit 1
 }
 
-# Load APPLE_SIGNING_IDENTITY / APPLE_ID / APPLE_PASSWORD / APPLE_TEAM_ID
-# without echoing them.
+# Load APPLE_ID / APPLE_PASSWORD / APPLE_TEAM_ID without echoing them.
+# (APPLE_SIGNING_IDENTITY is derived from the .p12 below, not from this file.)
 set -a
 # shellcheck source=/dev/null
 . "$env_file"
@@ -44,14 +50,38 @@ IFS= read -r p12_password
 stty echo 2>/dev/null || true
 printf '\n'
 
-# APPLE_CERTIFICATE is the base64-encoded .p12; the rest come from .env.signing.
-# Piping keeps every value off the argv list and out of the logs.
-base64 < "$p12"                       | gh secret set APPLE_CERTIFICATE
-printf '%s' "$p12_password"           | gh secret set APPLE_CERTIFICATE_PASSWORD
-printf '%s' "$APPLE_SIGNING_IDENTITY" | gh secret set APPLE_SIGNING_IDENTITY
-printf '%s' "$APPLE_ID"               | gh secret set APPLE_ID
-printf '%s' "$APPLE_PASSWORD"         | gh secret set APPLE_PASSWORD
-printf '%s' "$APPLE_TEAM_ID"          | gh secret set APPLE_TEAM_ID
+# Derive the signing identity from the certificate inside the .p12 so it always
+# matches APPLE_CERTIFICATE. Try modern openssl first, then -legacy (OpenSSL 3
+# needs it to read the ciphers Keychain exports use; LibreSSL ignores the retry).
+signing_identity=''
+for legacy in '' '-legacy'; do
+  signing_identity=$(
+    openssl pkcs12 $legacy -in "$p12" -passin "pass:$p12_password" -nokeys -clcerts 2>/dev/null \
+      | openssl x509 -noout -subject -nameopt multiline 2>/dev/null \
+      | sed -n 's/^[[:space:]]*commonName[[:space:]]*=[[:space:]]*//p' \
+      | head -1
+  )
+  [ -n "$signing_identity" ] && break
+done
+if [ -z "$signing_identity" ]; then
+  echo "error: could not read the certificate from $p12 — wrong export password?" >&2
+  exit 1
+fi
+case "$signing_identity" in
+  "Developer ID Application:"*) : ;;
+  *) echo "warning: the .p12 is not a 'Developer ID Application' certificate;" \
+          "notarization may be rejected." >&2 ;;
+esac
+
+# APPLE_CERTIFICATE is the base64-encoded .p12; APPLE_SIGNING_IDENTITY is the
+# certificate's common name; the rest come from .env.signing. Piping keeps every
+# value off the argv list and out of the logs.
+base64 < "$p12"                 | gh secret set APPLE_CERTIFICATE
+printf '%s' "$p12_password"     | gh secret set APPLE_CERTIFICATE_PASSWORD
+printf '%s' "$signing_identity" | gh secret set APPLE_SIGNING_IDENTITY
+printf '%s' "$APPLE_ID"         | gh secret set APPLE_ID
+printf '%s' "$APPLE_PASSWORD"   | gh secret set APPLE_PASSWORD
+printf '%s' "$APPLE_TEAM_ID"    | gh secret set APPLE_TEAM_ID
 
 echo "Registered signing secrets on $(gh repo view --json nameWithOwner -q .nameWithOwner)."
 echo "Verify with: gh secret list"
