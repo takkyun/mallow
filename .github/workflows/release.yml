@@ -50,7 +50,27 @@ jobs:
     env:
       RELEASE_TAG: ${{ github.event.inputs.tag || github.ref_name }}
     steps:
+      # On a manual run, fail early with a clear message if the requested tag
+      # does not exist yet — otherwise the checkout below fails cryptically and
+      # a mismatched commit could be built.
+      - name: Verify the release tag exists (manual runs)
+        if: github.event_name == 'workflow_dispatch'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.event.inputs.tag }}
+        run: |
+          if ! gh api "repos/${{ github.repository }}/git/ref/tags/$TAG" >/dev/null 2>&1; then
+            echo "::error::Tag '$TAG' does not exist. Create and push it first: git tag $TAG && git push origin $TAG" >&2
+            exit 1
+          fi
+
+      # Build from the release tag itself, so a manual run can never bundle a
+      # different commit than the tag names. On a tag push github.ref is already
+      # refs/tags/<tag>, so this is equivalent to the default there.
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref }}
 
       - name: Install Linux system dependencies
         if: matrix.platform == 'ubuntu-22.04'
