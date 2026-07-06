@@ -1,0 +1,156 @@
+name: Release
+
+# Build cross-platform bundles and attach them to a GitHub release.
+#
+# Trigger by pushing a version tag (e.g. `v0.1.0`), or run manually from the
+# Actions tab with an explicit tag. The release is created as a DRAFT — review
+# the assets, then publish it by hand.
+#
+# macOS builds are signed with a Developer ID Application certificate and
+# notarized when the APPLE_* secrets are configured (see
+# scripts/setup-ci-signing-secrets.sh). Windows and Linux bundles are unsigned.
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag to build (e.g. v0.1.0). A draft release with this tag is created.'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.event.inputs.tag || github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Apple Silicon runner; `universal-apple-darwin` lipo-merges an Intel
+          # slice too, so one .dmg covers both architectures.
+          - platform: macos-latest
+            rust_targets: aarch64-apple-darwin,x86_64-apple-darwin
+            tauri_args: --target universal-apple-darwin
+          # 22.04 keeps the produced AppImage runnable on older glibc than 24.04.
+          - platform: ubuntu-22.04
+            rust_targets: ''
+            tauri_args: ''
+          - platform: windows-latest
+            rust_targets: ''
+            tauri_args: ''
+    runs-on: ${{ matrix.platform }}
+    env:
+      RELEASE_TAG: ${{ github.event.inputs.tag || github.ref_name }}
+    steps:
+      # On a manual run, fail early with a clear message if the requested tag
+      # does not exist yet — otherwise the checkout below fails cryptically and
+      # a mismatched commit could be built.
+      - name: Verify the release tag exists (manual runs)
+        if: github.event_name == 'workflow_dispatch'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.event.inputs.tag }}
+        run: |
+          if ! gh api "repos/${{ github.repository }}/git/ref/tags/$TAG" >/dev/null 2>&1; then
+            echo "::error::Tag '$TAG' does not exist. Create and push it first: git tag $TAG && git push origin $TAG" >&2
+            exit 1
+          fi
+
+      # Build from the release tag itself, so a manual run can never bundle a
+      # different commit than the tag names. On a tag push github.ref is already
+      # refs/tags/<tag>, so this is equivalent to the default there.
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref }}
+
+      - name: Install Linux system dependencies
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libappindicator3-dev \
+            librsvg2-dev \
+            patchelf
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.rust_targets }}
+
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri -> target
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build, sign, and upload to the draft release
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # macOS signing + notarization. Empty/unset on non-macOS runners and
+          # until the secrets are configured, in which case macOS builds are
+          # produced unsigned and the notarize step below fails fast.
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        with:
+          tagName: ${{ env.RELEASE_TAG }}
+          releaseName: mallow ${{ env.RELEASE_TAG }}
+          releaseBody: |
+            Download the asset for your platform below.
+
+            - **macOS** — `.dmg` (universal: Apple Silicon + Intel; signed & notarized)
+            - **Windows** — `.exe` / `.msi` (unsigned; SmartScreen may warn — choose "More info" → "Run anyway")
+            - **Linux** — `.AppImage` / `.deb` / `.rpm`
+          releaseDraft: true
+          prerelease: false
+          args: ${{ matrix.tauri_args }}
+
+      # Tauri notarizes the .app but not the .dmg that wraps it, so the disk
+      # image is rejected by Gatekeeper on open. Notarize + staple the .dmg,
+      # then replace the asset tauri-action already uploaded. Mirrors the local
+      # scripts/macos-sign-build.sh workaround.
+      - name: Notarize and staple the macOS .dmg
+        if: matrix.platform == 'macos-latest'
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -eu
+          shopt -s nullglob
+          dmgs=(src-tauri/target/universal-apple-darwin/release/bundle/dmg/*.dmg)
+          if [ ${#dmgs[@]} -eq 0 ]; then
+            echo "::error::No .dmg found to notarize." >&2
+            exit 1
+          fi
+          for dmg in "${dmgs[@]}"; do
+            echo "Notarizing $dmg"
+            xcrun notarytool submit "$dmg" \
+              --apple-id "$APPLE_ID" \
+              --password "$APPLE_PASSWORD" \
+              --team-id "$APPLE_TEAM_ID" \
+              --wait
+            xcrun stapler staple "$dmg"
+            gh release upload "$RELEASE_TAG" "$dmg" --clobber -R "$GITHUB_REPOSITORY"
+          done

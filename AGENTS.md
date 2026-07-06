@@ -171,6 +171,29 @@ No custom entitlements file is needed for the default build; if a notarized
 build ever fails to launch under hardened runtime, add one via
 `bundle.macOS.entitlements`.
 
+### Cross-platform release via GitHub Actions
+
+`.github/workflows/release.yml` builds macOS (universal), Windows, and Linux
+bundles and attaches them to a **draft** GitHub release (review, then publish by
+hand). It triggers on a pushed `v*` tag, or manually from the Actions tab with a
+tag input. It uses `tauri-apps/tauri-action`; the macOS `.dmg` is notarized +
+stapled in a follow-up step (same gap the local script closes) and the asset is
+replaced via `gh release upload --clobber`.
+
+One-time setup — the macOS runner signs/notarizes only when these repo secrets
+exist. `scripts/setup-ci-signing-secrets.sh path/to/DeveloperID.p12` registers
+all six from `.env.signing` + an exported `.p12` (no value is printed):
+
+- `APPLE_CERTIFICATE` — base64 of a Developer ID Application `.p12` (Keychain
+  Access → My Certificates → Export…).
+- `APPLE_CERTIFICATE_PASSWORD` — that `.p12`'s export password.
+- `APPLE_SIGNING_IDENTITY`, `APPLE_ID`, `APPLE_PASSWORD`, `APPLE_TEAM_ID` — the
+  same values as `.env.signing`.
+
+Cutting a release: bump the version in **all three** of `package.json`,
+`src-tauri/tauri.conf.json`, `src-tauri/Cargo.toml`, commit, then
+`git tag vX.Y.Z && git push origin vX.Y.Z`. Windows/Linux bundles are unsigned.
+
 ## Known follow-ups
 
 - Config-tree expansion state is not preserved across a live reload.
