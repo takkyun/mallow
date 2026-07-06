@@ -165,6 +165,28 @@ macOS ビルドを Gatekeeper 警告なしで起動させるには、**Developer
 既定ビルドでは独自の entitlements ファイルは不要。もし公証済みビルドが hardened
 runtime 下で起動に失敗する場合は `bundle.macOS.entitlements` で追加する。
 
+### GitHub Actions によるクロスプラットフォームリリース
+
+`.github/workflows/release.yml` が macOS（universal）/ Windows / Linux のバンドル
+をビルドし、**Draft** の GitHub リリースに添付する（内容を確認してから手動で公開）。
+`v*` タグの push、または Actions タブからタグを指定した手動実行で起動する。
+`tauri-apps/tauri-action` を使い、macOS の `.dmg` は後段のステップで公証 + staple
+してから `gh release upload --clobber` で差し替える（ローカルスクリプトと同じ穴埋め）。
+
+初回設定 — macOS ランナーは以下のリポジトリ Secrets がある時だけ署名・公証する。
+`scripts/setup-ci-signing-secrets.sh path/to/DeveloperID.p12` が `.env.signing` と
+書き出した `.p12` から6つすべてを登録する（値は一切表示しない）:
+
+- `APPLE_CERTIFICATE` — Developer ID Application の `.p12` を base64 化したもの
+  （キーチェーンアクセス → 自分の証明書 → 書き出す…）。
+- `APPLE_CERTIFICATE_PASSWORD` — その `.p12` の書き出しパスワード。
+- `APPLE_SIGNING_IDENTITY` / `APPLE_ID` / `APPLE_PASSWORD` / `APPLE_TEAM_ID` —
+  `.env.signing` と同じ値。
+
+リリース手順: `package.json` / `src-tauri/tauri.conf.json` / `src-tauri/Cargo.toml`
+の **3か所すべて** のバージョンを上げてコミットし、
+`git tag vX.Y.Z && git push origin vX.Y.Z`。Windows / Linux バンドルは未署名。
+
 ## 既知の未対応
 
 - 設定ツリーの展開状態はライブ更新で保持されない。
