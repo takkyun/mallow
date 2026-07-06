@@ -3,11 +3,14 @@ name: Release
 # Build cross-platform bundles and attach them to a GitHub release.
 #
 # Trigger by pushing a version tag (e.g. `v0.1.0`), or run manually from the
-# Actions tab with an explicit tag. The release is created as a DRAFT — review
-# the assets, then publish it by hand.
+# Actions tab with an explicit tag. The release is created as a DRAFT with notes
+# generated from the pull requests merged since the previous tag (grouped per
+# .github/release.yml) — review the assets and notes, then publish it by hand.
 #
-# macOS builds are signed with a Developer ID Application certificate and
-# notarized when the APPLE_* secrets are configured (see
+# `create-release` makes the draft once; the `build` matrix then uploads each
+# platform's bundle to it by release id (so the matrix jobs never race to create
+# the release). macOS builds are signed with a Developer ID Application
+# certificate and notarized when the APPLE_* secrets are configured (see
 # scripts/setup-ci-signing-secrets.sh). Windows and Linux bundles are unsigned.
 
 on:
@@ -23,13 +26,58 @@ on:
 
 permissions:
   contents: write
+  pull-requests: read
 
 concurrency:
   group: release-${{ github.event.inputs.tag || github.ref_name }}
   cancel-in-progress: false
 
 jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    outputs:
+      release_id: ${{ steps.release.outputs.release_id }}
+    env:
+      RELEASE_TAG: ${{ github.event.inputs.tag || github.ref_name }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      # On a manual run, fail early with a clear message if the requested tag
+      # does not exist yet (auto-generated notes are computed against the tag).
+      - name: Verify the release tag exists (manual runs)
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          TAG: ${{ github.event.inputs.tag }}
+        run: |
+          if ! gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$TAG" >/dev/null 2>&1; then
+            echo "::error::Tag '$TAG' does not exist. Create and push it first: git tag $TAG && git push origin $TAG" >&2
+            exit 1
+          fi
+
+      - name: Create (or reuse) the draft release with generated notes
+        id: release
+        run: |
+          set -eu
+          # Reuse an existing release for this tag if present (e.g. on re-run).
+          # The tags endpoint can't see drafts, so list releases and match on
+          # tag_name instead.
+          id=$(gh api "repos/$GITHUB_REPOSITORY/releases?per_page=100" \
+            --jq "[.[] | select(.tag_name == \"$RELEASE_TAG\")][0].id // empty")
+          if [ -z "$id" ]; then
+            id=$(gh api "repos/$GITHUB_REPOSITORY/releases" \
+              -f tag_name="$RELEASE_TAG" \
+              -f name="mallow $RELEASE_TAG" \
+              -F draft=true \
+              -F prerelease=false \
+              -F generate_release_notes=true \
+              --jq .id)
+            echo "Created draft release $id for $RELEASE_TAG"
+          else
+            echo "Reusing existing release $id for $RELEASE_TAG"
+          fi
+          echo "release_id=$id" >> "$GITHUB_OUTPUT"
+
   build:
+    needs: create-release
     strategy:
       fail-fast: false
       matrix:
@@ -50,21 +98,6 @@ jobs:
     env:
       RELEASE_TAG: ${{ github.event.inputs.tag || github.ref_name }}
     steps:
-      # On a manual run, fail early with a clear message if the requested tag
-      # does not exist yet — otherwise the checkout below fails cryptically and
-      # a mismatched commit could be built.
-      - name: Verify the release tag exists (manual runs)
-        if: github.event_name == 'workflow_dispatch'
-        shell: bash
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG: ${{ github.event.inputs.tag }}
-        run: |
-          if ! gh api "repos/${{ github.repository }}/git/ref/tags/$TAG" >/dev/null 2>&1; then
-            echo "::error::Tag '$TAG' does not exist. Create and push it first: git tag $TAG && git push origin $TAG" >&2
-            exit 1
-          fi
-
       # Build from the release tag itself, so a manual run can never bundle a
       # different commit than the tag names. On a tag push github.ref is already
       # refs/tags/<tag>, so this is equivalent to the default there.
@@ -113,16 +146,9 @@ jobs:
           APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         with:
-          tagName: ${{ env.RELEASE_TAG }}
-          releaseName: mallow ${{ env.RELEASE_TAG }}
-          releaseBody: |
-            Download the asset for your platform below.
-
-            - **macOS** — `.dmg` (universal: Apple Silicon + Intel; signed & notarized)
-            - **Windows** — `.exe` / `.msi` (unsigned; SmartScreen may warn — choose "More info" → "Run anyway")
-            - **Linux** — `.AppImage` / `.deb` / `.rpm`
-          releaseDraft: true
-          prerelease: false
+          # Upload to the draft create-release made; do not create/edit it here,
+          # so its generated notes are preserved.
+          releaseId: ${{ needs.create-release.outputs.release_id }}
           args: ${{ matrix.tauri_args }}
 
       # Tauri notarizes the .app but not the .dmg that wraps it, so the disk
