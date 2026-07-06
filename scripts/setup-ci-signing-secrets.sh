@@ -53,10 +53,13 @@ printf '\n'
 # Derive the signing identity from the certificate inside the .p12 so it always
 # matches APPLE_CERTIFICATE. Try modern openssl first, then -legacy (OpenSSL 3
 # needs it to read the ciphers Keychain exports use; LibreSSL ignores the retry).
+# The export password is fed on stdin (-passin stdin), never on argv, so it stays
+# out of process listings.
 signing_identity=''
 for legacy in '' '-legacy'; do
   signing_identity=$(
-    openssl pkcs12 $legacy -in "$p12" -passin "pass:$p12_password" -nokeys -clcerts 2>/dev/null \
+    printf '%s' "$p12_password" \
+      | openssl pkcs12 $legacy -in "$p12" -passin stdin -nokeys -clcerts 2>/dev/null \
       | openssl x509 -noout -subject -nameopt multiline 2>/dev/null \
       | sed -n 's/^[[:space:]]*commonName[[:space:]]*=[[:space:]]*//p' \
       | head -1
