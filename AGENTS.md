@@ -196,6 +196,9 @@ all six from `.env.signing` + an exported `.p12` (no value is printed):
 Cutting a release: bump the version in **all three** of `package.json`,
 `src-tauri/tauri.conf.json`, `src-tauri/Cargo.toml`, commit, then
 `git tag vX.Y.Z && git push origin vX.Y.Z`. Windows/Linux bundles are unsigned.
+The draft's notes are generated from the pull requests merged since the previous
+tag, grouped by label per `.github/release.yml` (label PRs `feature` / `bug` /
+`documentation` to sort them; everything else falls under "Other Changes").
 
 ## Known follow-ups
 

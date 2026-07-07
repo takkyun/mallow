@@ -1,0 +1,21 @@
+# Shapes GitHub's automatically generated release notes, which the
+# `create-release` job in .github/workflows/release.yml requests via
+# `generate_release_notes: true`. Merged pull requests are grouped by label;
+# the trailing catch-all keeps every PR listed even when it has no label.
+changelog:
+  categories:
+    - title: Features
+      labels:
+        - feature
+        - enhancement
+    - title: Bug Fixes
+      labels:
+        - bug
+        - fix
+    - title: Documentation
+      labels:
+        - documentation
+        - docs
+    - title: Other Changes
+      labels:
+        - "*"
