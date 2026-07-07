@@ -187,8 +187,11 @@ all six from `.env.signing` + an exported `.p12` (no value is printed):
 - `APPLE_CERTIFICATE` — base64 of a Developer ID Application `.p12` (Keychain
   Access → My Certificates → Export…).
 - `APPLE_CERTIFICATE_PASSWORD` — that `.p12`'s export password.
-- `APPLE_SIGNING_IDENTITY`, `APPLE_ID`, `APPLE_PASSWORD`, `APPLE_TEAM_ID` — the
-  same values as `.env.signing`.
+- `APPLE_SIGNING_IDENTITY` — the certificate's common name, derived from the
+  `.p12` (not copied from `.env.signing`: CI string-matches the imported cert's
+  common name, so a SHA-1 hash — valid for local signing — would fail there).
+- `APPLE_ID`, `APPLE_PASSWORD`, `APPLE_TEAM_ID` — the same values as
+  `.env.signing`.
 
 Cutting a release: bump the version in **all three** of `package.json`,
 `src-tauri/tauri.conf.json`, `src-tauri/Cargo.toml`, commit, then
